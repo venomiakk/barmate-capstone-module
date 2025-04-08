@@ -1,7 +1,7 @@
-import 'package:barmate/screens/sign_up.dart';
+import 'package:barmate/screens/auth/sign_up.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/Utils/colors.dart';
-import 'package:barmate/screens/sign_in.dart'; // Ensure this is the correct path to the SignIn class
+import 'package:barmate/screens/auth/sign_in.dart'; // Ensure this is the correct path to the SignIn class
 
 class SpashScreen extends StatelessWidget {
   const SpashScreen({super.key});

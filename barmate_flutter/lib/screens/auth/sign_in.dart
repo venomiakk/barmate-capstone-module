@@ -1,7 +1,7 @@
 import 'package:barmate/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/Utils/colors.dart';
-import 'package:barmate/screens/sign_up.dart';
+import 'package:barmate/screens/auth/sign_up.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});

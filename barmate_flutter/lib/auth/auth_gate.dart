@@ -1,5 +1,6 @@
 import 'package:barmate/screens/home_screen.dart';
 import 'package:barmate/screens/spash_screen.dart';
+import 'package:barmate/screens/widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jwt_decoder/jwt_decoder.dart'; // Correct import
@@ -24,7 +25,7 @@ class AuthGate extends StatelessWidget {
           print("session");
           final jwt = JwtDecoder.decode(session.accessToken);
           print(jwt);
-          return const HomeScreen();
+          return const WidgetTree();
         } else {
           return const SpashScreen();
         }
