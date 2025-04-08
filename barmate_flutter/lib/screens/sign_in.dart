@@ -11,32 +11,27 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  final authService = AuthService();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
-final authService = AuthService();
-final emailController = TextEditingController();
-final passwordController = TextEditingController();
+  bool seeablePassword = true;
 
-bool seeablePassword = true;
-
-void login() async {
-  final email = emailController.text;
-  final password = passwordController.text;
-  try {
-    await authService.signInWithEmailPassword(email, password);
-    if (!mounted) return; // Ensure the widget is still mounted
-    Navigator.pop(context); // Navigate to the home screen
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
+  void login() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+    try {
+      await authService.signInWithEmailPassword(email, password);
+      if (!mounted) return; // Ensure the widget is still mounted
+      Navigator.pop(context); // Navigate to the home screen
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +70,12 @@ void login() async {
               ),
               SizedBox(height: size.height * 0.08),
               myTextField("email", Colors.black45, emailController),
-              myTextField("password", Colors.black45, passwordController, seeable: seeablePassword),
+              myTextField(
+                "password",
+                Colors.black45,
+                passwordController,
+                seeable: seeablePassword,
+              ),
               const SizedBox(height: 10),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 25),
@@ -119,10 +119,12 @@ void login() async {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          height: 2,
-                          width: size.width * 0.2,
-                          color: Colors.white,
+                        Flexible(
+                          child: Container(
+                            height: 2,
+                            width: size.width * 0.2,
+                            color: Colors.white,
+                          ),
                         ),
                         Text(
                           "   or continue with   ",
@@ -132,10 +134,12 @@ void login() async {
                             color: textColor2,
                           ),
                         ),
-                        Container(
-                          height: 2,
-                          width: size.width * 0.2,
-                          color: Colors.white,
+                        Flexible(
+                          child: Container(
+                            height: 2,
+                            width: size.width * 0.2,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -169,14 +173,15 @@ void login() async {
                               color: Colors.lightBlueAccent,
                             ),
                           ),
-                          onTap: () => {
-                            Navigator.push(
+                          onTap:
+                              () => {
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => SignUp(),
                                   ),
                                 ),
-                          },
+                              },
                         ),
                       ],
                     ),
@@ -201,7 +206,12 @@ void login() async {
     );
   }
 
-  Container myTextField(String hintText, Color color, TextEditingController controller, {bool seeable = false}) {
+  Container myTextField(
+    String hintText,
+    Color color,
+    TextEditingController controller, {
+    bool seeable = false,
+  }) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
       child: TextField(

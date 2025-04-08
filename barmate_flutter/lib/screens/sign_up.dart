@@ -10,7 +10,6 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
-
   final authService = AuthService();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -20,7 +19,7 @@ class _SignUpState extends State<SignUp> {
     final email = emailController.text;
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
-    if(password != confirmPassword){
+    if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Passwords do not match"),
@@ -33,12 +32,9 @@ class _SignUpState extends State<SignUp> {
       await authService.signUpWithEmailPassword(email, password);
       Navigator.pop(context);
     } catch (e) {
-      if(mounted){
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
         );
       }
     }
@@ -82,7 +78,11 @@ class _SignUpState extends State<SignUp> {
               SizedBox(height: size.height * 0.08),
               myTextField("email", Colors.black45, emailController),
               myTextField("password", Colors.black45, passwordController),
-              myTextField("confirm password", Colors.black45, confirmPasswordController),
+              myTextField(
+                "confirm password",
+                Colors.black45,
+                confirmPasswordController,
+              ),
               const SizedBox(height: 10),
               SizedBox(height: size.height * 0.04),
               Padding(
@@ -114,10 +114,12 @@ class _SignUpState extends State<SignUp> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          height: 2,
-                          width: size.width * 0.2,
-                          color: Colors.white,
+                        Flexible(
+                          child: Container(
+                            height: 2,
+                            width: size.width * 0.2,
+                            color: Colors.white,
+                          ),
                         ),
                         Text(
                           "   or continue with   ",
@@ -127,10 +129,12 @@ class _SignUpState extends State<SignUp> {
                             color: textColor2,
                           ),
                         ),
-                        Container(
-                          height: 2,
-                          width: size.width * 0.2,
-                          color: Colors.white,
+                        Flexible(
+                          child: Container(
+                            height: 2,
+                            width: size.width * 0.2,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -164,7 +168,11 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Container myTextField(String hintText, Color color, TextEditingController controller) {
+  Container myTextField(
+    String hintText,
+    Color color,
+    TextEditingController controller,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
       child: TextField(
