@@ -1,7 +1,8 @@
+import 'package:barmate/Utils/colors.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/data/notifiers.dart';
-import 'package:barmate/utils/colors.dart';
+
 
 class NavbarWidget extends StatelessWidget {
   const NavbarWidget({super.key});
@@ -18,8 +19,8 @@ class NavbarWidget extends StatelessWidget {
             Icon(Icons.person, size: 30),
           ],
           onTap: (value) => selectedPageNotifier.value = value,
-          color: backgroundColor3,
-          backgroundColor: Colors.white,
+          color: Theme.of(context).colorScheme.primary,
+          backgroundColor:Theme.of(context).scaffoldBackgroundColor,
           animationCurve: Curves.linearToEaseOut,
         );
       },

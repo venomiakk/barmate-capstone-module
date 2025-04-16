@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:barmate/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:barmate/data/notifiers.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,14 +17,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home:Scaffold(
-        body: AuthGate()
-        ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: themeNotifier,
+      builder: (context, currentTheme, child) {
+        return MaterialApp(
+          theme: ThemeData(colorScheme: currentTheme ? ColorScheme.light() : ColorScheme.dark()), // Use the current theme mode
+          home: AuthGate(),
+        );
+      },
     );
   }
 }
