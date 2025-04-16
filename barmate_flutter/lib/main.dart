@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:barmate/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() async{
+Future<void> main() async{
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZ3BydGppbHpudnRlenZpaHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTEwMDgsImV4cCI6MjA1ODQ4NzAwOH0.fFq8-aLLYCBuE4jYIlY23RZfUkIp43S49Xnqh5dnvOM',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZ3BydGppbHpudnRlenZpaHd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjkxMTAwOCwiZXhwIjoyMDU4NDg3MDA4fQ.uJAtHRsLeDJCV2sRrSriH7MqJSoNPYz5dU3ZRq3O9dY',
     url: 'https://dqgprtjilznvtezvihww.supabase.co',
   );
   runApp(const MyApp());

@@ -1,4 +1,4 @@
-import 'package:barmate/screens/home_screen.dart';
+
 import 'package:barmate/screens/spash_screen.dart';
 import 'package:barmate/screens/widget_tree.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +22,7 @@ class AuthGate extends StatelessWidget {
         }
         final session = snapshot.hasData ? snapshot.data!.session : null;
         if (session != null) {
-          print("session");
           final jwt = JwtDecoder.decode(session.accessToken);
-          print(jwt);
           return const WidgetTree();
         } else {
           return const SpashScreen();
