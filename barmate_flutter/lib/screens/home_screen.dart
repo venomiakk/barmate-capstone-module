@@ -1,5 +1,5 @@
 
-import 'package:barmate/auth/auth_service.dart';
+
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/model/tag_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
@@ -21,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
    late Future<List<RecipeModel>> _featuredRecipesFuture;
    late Future<List<RecipeModel>> _popularRecipesFuture;
    late Future<List<TagModel>> _tags;
-  final authService = AuthService();
   final RecipeRepository recipeRepository = RecipeRepository();
   final TagRepository tagRepository = TagRepository();
 
@@ -36,15 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   
 
-  void logout() async {
-    try {
-      await authService.signOut();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
-    }
-  }
+ 
 
   @override
   Widget build(BuildContext context) {

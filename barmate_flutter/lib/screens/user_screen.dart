@@ -1,3 +1,4 @@
+import 'package:barmate/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class UserPage extends StatefulWidget {
@@ -8,6 +9,17 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  final authService = AuthService();
+  void logout() async {
+    try {
+      await authService.signOut();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -18,10 +30,38 @@ class _UserPageState extends State<UserPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+              SizedBox(height: size.height * 0.03),
               SizedBox(
-                height: size.height * 0.03,
+                height: size.height * 0.08, // Adjust the height as needed
+                child: Stack(
+                  children: [
+                    // Centered "Account" text
+                    Align(
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Account',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    // Logout icon on the right
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.logout,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                        onPressed: logout, // Link the logout function here
+                      ),
+                    ),
+                  ],
+                ),
               ), // Adjust the height as needed
-              const Text('Account', style: TextStyle(fontSize: 24)),
+
               SizedBox(height: size.height * 0.03),
               Container(
                 width: size.width * 0.9,

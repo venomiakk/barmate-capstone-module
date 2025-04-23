@@ -22,4 +22,25 @@ class AuthService{
     final user = session?.user;
     return user?.email;
   }
+
+  Future<String?> fetchUserLoginById(String userId) async {
+    try {
+      final response = await supabase.rpc('get_user_login_by_id', params: {'u_id': userId});
+      return response;
+    } catch (error) {
+      print('Błąd podczas wywoływania funkcji RPC: $error');
+      return 'guest';
+    }
+  }
+
+  Future<String?> setLoginById(String userId, String userLogin) async {
+    try {
+      final response = await supabase.rpc('set_user_login_by_id', params: {'u_id': userId,'u_login': userLogin});
+      return response;
+    } catch (error) {
+      print('Błąd podczas wywoływania funkcji RPC: $error');
+      return 'guest';
+    }
+  }
+
 }

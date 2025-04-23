@@ -1,9 +1,30 @@
+import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/data/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+class AppBarWidget extends StatefulWidget implements PreferredSizeWidget {
   const AppBarWidget({super.key});
 
+
+  @override
+  State<AppBarWidget> createState() => _AppBarWidgetState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(100.0);
+}
+
+class _AppBarWidgetState extends State<AppBarWidget> {
+  final authService = AuthService();
+  String username='';
+  @override
+  void initState() {
+    super.initState();
+    username = UserPreferences().getUserName();
+  }
+
+  
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
@@ -48,9 +69,9 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                             ),
                           ],
               ),
-              const Text(
-                'User Name',
-                style: TextStyle(
+              Text(
+                username,
+                style: const TextStyle(
                   fontSize: fontSize1,
                   fontWeight: FontWeight.bold,
                 ),
