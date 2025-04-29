@@ -1,4 +1,6 @@
+import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
+import 'package:barmate/data/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class UserPage extends StatefulWidget {
@@ -9,9 +11,12 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  
   final authService = AuthService();
   void logout() async {
+    resetNotifiersToDefaults();
     try {
+      UserPreferences.clear(); // Clear user preferences
       await authService.signOut();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,6 +111,7 @@ class _UserPageState extends State<UserPage> {
   }
 
   Row userProfile() {
+    String username = UserPreferences().getUserName();
     return Row(
       mainAxisAlignment: MainAxisAlignment.start, // Align items to the start
       crossAxisAlignment: CrossAxisAlignment.center, // Vertically center items
@@ -125,9 +131,9 @@ class _UserPageState extends State<UserPage> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
-              'User Name',
+              username,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text('User title', style: TextStyle(fontSize: 18)),

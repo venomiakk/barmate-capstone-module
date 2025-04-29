@@ -1,44 +1,71 @@
-
-import 'package:barmate/Utils/user_shared_preferences.dart';
-import 'package:barmate/auth/auth_service.dart';
-import 'package:barmate/screens/set_login_screen.dart';
-import 'package:barmate/screens/spash_screen.dart';
-import 'package:barmate/screens/widget_tree.dart';
+import 'package:barmate/data/notifiers.dart';
+import 'package:barmate/screens/admin_screens/admin_widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:jwt_decoder/jwt_decoder.dart'; // Correct import
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:barmate/auth/auth_service.dart';
+import 'package:barmate/screens/user_screens/set_login_screen.dart';
+import 'package:barmate/screens/user_screens/spash_screen.dart';
+import 'package:barmate/screens/user_screens/widget_tree.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
-  
+
+  Future<Widget> _handleAuthState(AuthState authState) async {
+    final session = authState.session;
+    if (session != null) {
+      final jwt = JwtDecoder.decode(session.accessToken);
+      final userId = jwt['user_metadata']['sub']?.toString() ?? '0';
+      final userRole = jwt['user_role'];
+      await UserPreferences.setId(userId);
+
+      final authService = AuthService();
+      final userName = await authService.fetchUserLoginById(userId);
+      await UserPreferences.setUserName(userName.toString());
+      if(userRole == 'admin'){
+        await UserPreferences.setUserName('admin');
+        return const AdminWidgetTree();
+      }
+      if (userName == null || userName.isEmpty) {
+        return const SetLoginScreen();
+      } else {
+        
+        return const WidgetTree();
+      }
+    } else {
+      return const SpashScreen();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
+    return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        AuthService authService = AuthService();
-        final session = snapshot.hasData ? snapshot.data!.session : null;
-        if (session != null) {
-          final jwt = JwtDecoder.decode(session.accessToken);
-          UserPreferences.setId(jwt['user_metadata']['sub']?.toString() ?? '0'); // Convert to int
-          try{
-            authService.fetchUserLoginById(UserPreferences().getUserId()).then((value)=>{
-              UserPreferences.setUserName(value!),
-            });
-            if (UserPreferences().getUserName() == 'guest') {
-              return const SetLoginScreen();
-            }
-          }catch(e){
-            return const SetLoginScreen();
-          }
-          return const WidgetTree();
+
+        if (snapshot.hasData) {
+          return FutureBuilder<Widget>(
+            future: _handleAuthState(snapshot.data!),
+            builder: (context, futureSnapshot) {
+              if (futureSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              } else if (futureSnapshot.hasError) {
+                return Scaffold(
+                  body: Center(child: Text('Wystąpił błąd: ${futureSnapshot.error}')),
+                );
+              } else {
+                return futureSnapshot.data!;
+              }
+            },
+          );
         } else {
           return const SpashScreen();
         }

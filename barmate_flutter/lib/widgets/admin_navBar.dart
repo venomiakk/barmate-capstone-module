@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:barmate/data/notifiers.dart';
 
 
-class NavbarWidget extends StatelessWidget {
-  const NavbarWidget({super.key});
+class AdminNavbar extends StatelessWidget {
+  const AdminNavbar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +14,9 @@ class NavbarWidget extends StatelessWidget {
       builder: (context, sekectedPage, child) {
         return CurvedNavigationBar(
           items: const <Widget>[
-            Icon(Icons.home, size: 30),
-            Icon(Icons.search, size: 30),
-            Icon(Icons.shopping_bag, size: 30),
-            Icon(Icons.person, size: 30),
+            Icon(Icons.article, size: 30),
+            Icon(Icons.assessment, size: 30),
+            Icon(Icons.collections_bookmark, size: 30),
           ],
           onTap: (value) => selectedPageNotifier.value = value,
           color: Theme.of(context).colorScheme.primary,

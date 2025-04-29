@@ -1,7 +1,7 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:barmate/auth/auth_gate.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SetLoginScreen extends StatefulWidget {
   const SetLoginScreen({super.key});
@@ -88,7 +88,21 @@ class _SetLoginScreenState extends State<SetLoginScreen> {
                 final userId = UserPreferences().getUserId(); // Replace with actual user ID
                 final login = loginController.text;
                 try{
-                  authService.setLoginById(userId, login);
+                  authService.setLoginById(userId, login).then((value)=>{
+                    if(value == '1'){
+                      ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Login already exist"), backgroundColor: Colors.red),
+                    ),
+                      
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Login set"), backgroundColor: Colors.green),
+                    ),
+                      UserPreferences.setUserName(login),
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>AuthGate())),
+                    }
+                  });
+                  
                 }catch(e){
                   print('Error: $e');
                 }

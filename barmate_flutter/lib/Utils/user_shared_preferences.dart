@@ -22,5 +22,10 @@ class UserPreferences {
   
 
   String getUserId() => _preferences?.getString(_userId) ?? '';
+
+   static Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
   
 }
