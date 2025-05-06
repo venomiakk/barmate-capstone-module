@@ -20,11 +20,11 @@
 
 **koneser**
 
-- [ ] Dodawanie składników do zapasów
-- [ ] Dodawanie alkoholi do zapasów
+- [x] Dodawanie składników do zapasów
+- [x] Dodawanie alkoholi do zapasów
 - [ ] Aktualizacja stanu zapasów
-- [ ] Śledzenie stanu zapasów
-- [ ] Wyszukiwanie artykułów
+- [x] Śledzenie stanu zapasów
+- [x] Wyszukiwanie artykułów
 - [ ] Wyszukiwanie drinków
 - [ ] Filtrowanie wyników
 - [ ] Generowanie przepisu na podstawie zapasów
@@ -41,7 +41,7 @@
 - [ ] Granie w minigry
 - [ ] Wyszukiwanie innych użytkowników
 - [ ] Dostosowywanie preferencji
-- [ ] Personalizacja interfejsu
+- [x] Personalizacja interfejsu
 - [ ] Personalizacja profilu
 - [ ] Wyświetlanie instrukcji przygotowania drinków
 - [ ] Wyświetlanie wskazówek dotyczących dekoracji

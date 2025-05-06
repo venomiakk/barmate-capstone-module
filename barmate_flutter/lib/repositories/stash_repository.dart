@@ -18,4 +18,19 @@ class UserStashRepository {
     return [];
   }
 
+  Future<void> addToStash(var userId, int ingredientId, int quantity) async {
+    try {
+      final response = await client.rpc('add_to_stash', params: {
+        'p_user_id': userId,
+        'p_ingredient_id': ingredientId,
+        'p_quantity': quantity,
+      });
+      if (response != null) {
+        print('Added to stash: $response');
+      }
+    } catch (e) {
+      print('Error adding to stash: $e');
+    }
+  }
+
 }

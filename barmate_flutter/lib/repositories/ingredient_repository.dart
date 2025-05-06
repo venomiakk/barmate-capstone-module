@@ -16,4 +16,15 @@ class IngredientRepository {
   return null;
 }
 
+Future<List<Ingredient>> fetchAllIngredients() async {
+  try {
+    final response = await client.rpc('get_all_ingredients');
+    if (response != null) {
+      return (response as List).map((e) => Ingredient.fromJson(e as Map<String, dynamic>)).toList();
+    }
+  } catch (e) {
+    print('Error fetching ingredient: $e');
+  }
+  return [];
+  }
 }

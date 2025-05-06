@@ -92,9 +92,12 @@ class _UserStashScreenState extends State<UserStashScreen> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.white.withOpacity(0.9),
-                                    Colors.white.withOpacity(0.5),
-                                    Colors.white.withOpacity(0.1),
+                                    Theme.of(context)
+                                            .scaffoldBackgroundColor.withOpacity(0.9),
+                                    Theme.of(context)
+                                            .scaffoldBackgroundColor.withOpacity(0.5),
+                                    Theme.of(context)
+                                            .scaffoldBackgroundColor.withOpacity(0.1),
                                   ],
                                   stops: [0.0, 0.6, 1.0],
                                   begin: Alignment.bottomCenter,
@@ -108,7 +111,6 @@ class _UserStashScreenState extends State<UserStashScreen> {
                                   Text(
                                     entry.ingredientName,
                                     style: const TextStyle(
-                                      color: Colors.black,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -121,12 +123,11 @@ class _UserStashScreenState extends State<UserStashScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.local_drink, size: 13, color: Colors.black),
+                                      const Icon(Icons.local_drink, size: 13,),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${entry.amount}',
                                         style: const TextStyle(
-                                          color: Colors.black,
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
                                         ),
