@@ -5,6 +5,7 @@ class UserPreferences {
 
   static const String _loginKey = 'login';
   static const String _userId = 'user_id';
+  static const String _userTitleKey = 'user_title';
 
   static Future init() async {
     _preferences = await SharedPreferences.getInstance();
@@ -26,6 +27,16 @@ class UserPreferences {
    static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+    Future<String?> getUserTitle() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userTitleKey);
+  }
+
+    Future<void> setUserTitle(String title) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userTitleKey, title);
   }
   
 }
