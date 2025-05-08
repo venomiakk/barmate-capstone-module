@@ -60,52 +60,47 @@ void _filterIngredients(String query) {
     filteredIngredients.clear();
     filteredRecipes.clear();
 
-    if (query.isEmpty) {
-      return;
-    }
+    if (query.isEmpty) return;
 
     final lowerQuery = query.toLowerCase();
 
-    final ingredientMatches = ingredients
-        .where((ingredient) => ingredient.name.toLowerCase().contains(lowerQuery))
-        .map((ingredient) {
-          final similarity = StringSimilarity.compareTwoStrings(
-            ingredient.name.toLowerCase(),
-            lowerQuery,
-          );
-          return {'item': ingredient, 'similarity': similarity};
-        })
-        .toList();
+    // Combine matches with similarity
+    final allMatches = <Map<String, dynamic>>[];
 
-    final recipeMatches = recipes
-        .where((recipe) => recipe.name.toLowerCase().contains(lowerQuery))
-        .map((recipe) {
-          final similarity = StringSimilarity.compareTwoStrings(
-            recipe.name.toLowerCase(),
-            lowerQuery,
-          );
-          return {'item': recipe, 'similarity': similarity};
-        })
-        .toList();
+    for (final ingredient in ingredients) {
+      if (ingredient.name.toLowerCase().contains(lowerQuery)) {
+        final similarity = StringSimilarity.compareTwoStrings(
+          ingredient.name.toLowerCase(),
+          lowerQuery,
+        );
+        allMatches.add({'item': ingredient, 'similarity': similarity});
+      }
+    }
 
-    ingredientMatches.sort((a, b) =>
+    for (final recipe in recipes) {
+      if (recipe.name.toLowerCase().contains(lowerQuery)) {
+        final similarity = StringSimilarity.compareTwoStrings(
+          recipe.name.toLowerCase(),
+          lowerQuery,
+        );
+        allMatches.add({'item': recipe, 'similarity': similarity});
+      }
+    }
+
+    allMatches.sort((a, b) =>
         (b['similarity'] as double).compareTo(a['similarity'] as double));
-    recipeMatches.sort((a, b) =>
-        (b['similarity'] as double).compareTo(a['similarity'] as double));
+
+    filteredItems.addAll(allMatches.map((e) => e['item']));
 
     filteredIngredients.addAll(
-      ingredientMatches.map((e) => e['item'] as Ingredient),
+      filteredItems.whereType<Ingredient>(),
     );
     filteredRecipes.addAll(
-      recipeMatches.map((e) => e['item'] as Recipe),
+      filteredItems.whereType<Recipe>(),
     );
-
-    filteredItems.addAll([
-      ...filteredIngredients,
-      ...filteredRecipes,
-    ]);
   });
 }
+
 
 
   Future<void> _showAddToDialog(
