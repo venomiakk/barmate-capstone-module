@@ -5,6 +5,7 @@ import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
+import 'package:string_similarity/string_similarity.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -21,6 +22,8 @@ class _SearchPageState extends State<SearchPage> {
   final List<Ingredient> ingredients = [];
   final List<Recipe> recipes = [];
   final List<Ingredient> filteredIngredients = [];
+  final List<Recipe> filteredRecipes = [];
+  final List<dynamic > filteredItems = [];
 
   @override
   void initState() {
@@ -34,7 +37,6 @@ class _SearchPageState extends State<SearchPage> {
         await ingredientRepository.fetchAllIngredients();
     setState(() {
       ingredients.addAll(fetchedIngredients);
-      filteredIngredients.addAll(fetchedIngredients);
     });
   }
 
@@ -52,17 +54,59 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _filterIngredients(String query) {
-    setState(() {
-      filteredIngredients.clear();
-      filteredIngredients.addAll(
-        ingredients.where(
-          (ingredient) =>
-              ingredient.name.toLowerCase().contains(query.toLowerCase()),
-        ),
-      );
-    });
-  }
+void _filterIngredients(String query) {
+  setState(() {
+    filteredItems.clear();
+    filteredIngredients.clear();
+    filteredRecipes.clear();
+
+    if (query.isEmpty) {
+      return;
+    }
+
+    final lowerQuery = query.toLowerCase();
+
+    final ingredientMatches = ingredients
+        .where((ingredient) => ingredient.name.toLowerCase().contains(lowerQuery))
+        .map((ingredient) {
+          final similarity = StringSimilarity.compareTwoStrings(
+            ingredient.name.toLowerCase(),
+            lowerQuery,
+          );
+          return {'item': ingredient, 'similarity': similarity};
+        })
+        .toList();
+
+    final recipeMatches = recipes
+        .where((recipe) => recipe.name.toLowerCase().contains(lowerQuery))
+        .map((recipe) {
+          final similarity = StringSimilarity.compareTwoStrings(
+            recipe.name.toLowerCase(),
+            lowerQuery,
+          );
+          return {'item': recipe, 'similarity': similarity};
+        })
+        .toList();
+
+    ingredientMatches.sort((a, b) =>
+        (b['similarity'] as double).compareTo(a['similarity'] as double));
+    recipeMatches.sort((a, b) =>
+        (b['similarity'] as double).compareTo(a['similarity'] as double));
+
+    filteredIngredients.addAll(
+      ingredientMatches.map((e) => e['item'] as Ingredient),
+    );
+    filteredRecipes.addAll(
+      recipeMatches.map((e) => e['item'] as Recipe),
+    );
+
+    filteredItems.addAll([
+      ...filteredIngredients,
+      ...filteredRecipes,
+    ]);
+  });
+}
+
 
   Future<void> _showAddToDialog(
     Ingredient ingredient,
@@ -187,7 +231,7 @@ class _SearchPageState extends State<SearchPage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: _buildIngredientGrid(),
+                child: _buildGrid(),
               ),
             ),
           ],
@@ -239,14 +283,14 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  GridView _buildIngredientGrid() {
+  GridView _buildGrid() {
     return GridView.count(
       crossAxisCount: 1,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 3.6,
-      children: List.generate(filteredIngredients.length, (index) {
-        return _buildIngredientCard(filteredIngredients[index]);
+      children: List.generate(filteredItems.length, (index) {
+        return filteredItems[index] is Ingredient ? _buildIngredientCard(filteredItems[index]) : _buildRecipeCard(filteredItems[index]);
       }),
     );
   }
@@ -257,9 +301,9 @@ class _SearchPageState extends State<SearchPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          _buildIngredientImage(),
+          _buildCardImage(),
           const SizedBox(width: 16),
-          _buildIngredientInfo(ingredient),
+          _buildCardInfo(ingredient),
           const SizedBox(width: 8),
           _buildIngredientActions(ingredient),
         ],
@@ -267,7 +311,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Stack _buildIngredientImage() {
+  Stack _buildCardImage() {
     return Stack(
       children: [
         ClipRRect(
@@ -311,21 +355,21 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Expanded _buildIngredientInfo(Ingredient ingredient) {
+  Expanded _buildCardInfo(dynamic data) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            ingredient.name.toUpperCase(),
+            data.name.toUpperCase(),
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
-            ingredient.description,
+            data.description,
             style: TextStyle(fontSize: 14),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -348,6 +392,20 @@ class _SearchPageState extends State<SearchPage> {
           onPressed: () => _showAddToDialog(ingredient, 'shopping list'),
         ),
       ],
+    );
+  }
+
+  Card _buildRecipeCard(Recipe recipe) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: [
+          _buildCardImage(),
+          const SizedBox(width: 16),
+          _buildCardInfo(recipe),
+        ],
+      ),
     );
   }
 }
