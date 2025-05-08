@@ -404,8 +404,22 @@ void _filterIngredients(String query) {
           _buildCardImage(),
           const SizedBox(width: 16),
           _buildCardInfo(recipe),
+          const SizedBox(width: 8),
+          _buildRecipeActions(recipe),
         ],
       ),
+    );
+  }
+
+  Column _buildRecipeActions(Recipe recipe) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.local_bar, size: 30),
+          onPressed: () => (),
+        ),
+      ],
     );
   }
 }
