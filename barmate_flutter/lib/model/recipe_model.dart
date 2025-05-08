@@ -1,13 +1,15 @@
-class RecipeModel {
+class Recipe {
   final int id;
   final String name;
+  final dynamic description;
 
-  RecipeModel({required this.id, required this.name});
+  Recipe({required this.id, required this.name, required this.description});
 
-  factory RecipeModel.fromMap(Map<String, dynamic> map) {
-    return RecipeModel(
-      id: map['id'] as int,
-      name: map['name'] as String,
+  factory Recipe.fromJson(Map<String, dynamic> json) {
+    return Recipe(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      description: json['description'] as String,
     );
   }
 }

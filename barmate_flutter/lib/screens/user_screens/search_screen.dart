@@ -199,8 +199,8 @@ class _SearchPageState extends State<SearchPage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  'Description of the ingredient goes here. It can be a long text that describes the ingredient in detail.',
+                                Text(
+                                  filteredIngredients[index].description,
                                   style: TextStyle(fontSize: 14),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

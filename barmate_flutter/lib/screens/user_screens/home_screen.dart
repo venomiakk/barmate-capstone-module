@@ -1,9 +1,9 @@
 
 
+import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/model/recipe_model.dart';
-import 'package:barmate/model/tag_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
-import 'package:barmate/repositories/tag_repository.dart';
+import 'package:barmate/repositories/collection_repository.dart';
 import 'package:barmate/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -18,25 +18,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-   late Future<List<RecipeModel>> _featuredRecipesFuture;
-   late Future<List<RecipeModel>> _popularRecipesFuture;
-   late Future<List<TagModel>> _tags;
+   late Future<List<Collection>> _collectionsList;
+   late Future<List<Recipe>> _popularRecipesFuture;
   final RecipeRepository recipeRepository = RecipeRepository();
-  final TagRepository tagRepository = TagRepository();
+  final CollectionRepository collectionRepository = CollectionRepository();
 
   String? selectedTag; // State to track the selected tag
    
   @override
   void initState() {
     super.initState();
-    _featuredRecipesFuture = recipeRepository.getRecipesByCollectionName('featured');
-    _popularRecipesFuture = recipeRepository.getRecipesByCollectionName('featured');
-    _tags = tagRepository.getEveryTag();
+    _collectionsList = collectionRepository.getCollections();
+    _popularRecipesFuture = recipeRepository.getPopularRecipes();
   }
   
-
- 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,8 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 30),
               featured(),
               const SizedBox(height: 30),
-              tags(),
-              const SizedBox(height: 30),
               popularRecipes(),
             ],
           ),
@@ -62,84 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   
-
-  Widget tags() {
-  return FutureBuilder<List<TagModel>>(
-    future: _tags,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      } else if (snapshot.hasError) {
-        return Text('Error: ${snapshot.error}');
-      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return const Text('No tags available.');
-      } else {
-        final tags = snapshot.data!;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Tags',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 50, // Zwiększona wysokość listy tagów
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal, // Przewijanie poziome
-                itemCount: tags.length,
-                itemBuilder: (context, index) {
-                  final tag = tags[index];
-                  final isSelected = selectedTag == tag.name;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0), // Większy odstęp między tagami
-                    child: ChoiceChip(
-                      label: Text(
-                        tag.name,
-                        style: TextStyle(
-                          fontSize: 16, // Większy rozmiar tekstu
-                          color: isSelected
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.onSecondary,
-                        ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: Theme.of(context).colorScheme.primary,
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25), // Większe zaokrąglenie
-                        side: BorderSide(
-                          color: isSelected
-                              ? Colors.transparent // Brak obramowania dla wybranych
-                              : Colors.transparent, // Brak obramowania dla niewybranych
-                        ),
-                      ),
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Większy odstęp wewnętrzny
-                      onSelected: (bool selected) {
-                        setState(() {
-                          selectedTag = selected ? tag.name : null; // Aktualizacja wybranego tagu
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      }
-    },
-  );
-}
-
 Widget featured() {
-  return FutureBuilder<List<RecipeModel>>(
-    future: _featuredRecipesFuture,
+  return FutureBuilder<List<Collection>>(
+    future: _collectionsList,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(child: CircularProgressIndicator());
@@ -217,7 +135,7 @@ Widget featured() {
 }
 
 Widget popularRecipes() {
-  return FutureBuilder<List<RecipeModel>>(
+  return FutureBuilder<List<Recipe>>(
     future: _popularRecipesFuture,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
