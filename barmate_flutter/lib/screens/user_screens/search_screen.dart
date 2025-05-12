@@ -64,7 +64,6 @@ void _filterIngredients(String query) {
 
     final lowerQuery = query.toLowerCase();
 
-    // Combine matches with similarity
     final allMatches = <Map<String, dynamic>>[];
 
     for (final ingredient in ingredients) {
@@ -78,7 +77,9 @@ void _filterIngredients(String query) {
     }
 
     for (final recipe in recipes) {
-      if (recipe.name.toLowerCase().contains(lowerQuery)) {
+      if (recipe.name.toLowerCase().contains(lowerQuery) || recipe.ingredients
+          ?.any((ingredient) => ingredient.name.toLowerCase().contains(lowerQuery)) ==
+          true) {
         final similarity = StringSimilarity.compareTwoStrings(
           recipe.name.toLowerCase(),
           lowerQuery,
@@ -100,8 +101,6 @@ void _filterIngredients(String query) {
     );
   });
 }
-
-
 
   Future<void> _showAddToDialog(
     Ingredient ingredient,
