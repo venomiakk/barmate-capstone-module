@@ -23,6 +23,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
   String searchQuery = '';
   bool sortAscending = true;
   List<String> availableCategories = [];
+  bool isSearchPanelVisible = false;
 
   @override
   void initState() {
@@ -64,6 +65,100 @@ class _UserStashScreenState extends State<UserStashScreen> {
     });
   }
 
+  void _showSearchFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 40,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Search bar
+                SearchBar(
+                  hintText: 'Search ingredient',
+                  leading: const Icon(Icons.search),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value.toLowerCase();
+                    });
+                  },
+                  elevation: const MaterialStatePropertyAll(2),
+                  shape: MaterialStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Category dropdown
+                Material(
+                  elevation: 2,
+                  borderRadius: BorderRadius.circular(24),
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      labelText: 'Filter category',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                    ),
+                    value: selectedCategory,
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text("All")),
+                      ...availableCategories.map(
+                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          searchQuery = '';
+                          selectedCategory = null;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Wyczyść"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Pokaż wyniki"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _deleteSelectedIngredients() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
@@ -81,7 +176,6 @@ class _UserStashScreenState extends State<UserStashScreen> {
     Share.share('Mój stash w BarMate:\n\n$text');
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,12 +183,30 @@ class _UserStashScreenState extends State<UserStashScreen> {
         title: const Text('Your Stash'),
         actions: [
           IconButton(
+            icon: Icon(isSearchPanelVisible ? Icons.close : Icons.search),
+            tooltip:
+                isSearchPanelVisible ? 'Zamknij filtr' : 'Szukaj / filtruj',
+            onPressed: () {
+              setState(() {
+                if (isSearchPanelVisible) {
+                  // Resetujemy filtrowanie przy zamknięciu
+                  searchQuery = '';
+                  selectedCategory = null;
+                }
+                isSearchPanelVisible = !isSearchPanelVisible;
+              });
+            },
+          ),
+
+          IconButton(
             icon: const Icon(Icons.share),
             tooltip: 'Udostępnij stash',
             onPressed: _shareStash,
           ),
           IconButton(
-            icon: Icon(sortAscending ? Icons.arrow_upward : Icons.arrow_downward),
+            icon: Icon(
+              sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+            ),
             tooltip: 'Sortuj ilość',
             onPressed: () {
               setState(() {
@@ -119,73 +231,105 @@ class _UserStashScreenState extends State<UserStashScreen> {
             ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadStash,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Szukaj składnika',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value.toLowerCase();
-                        });
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Filtruj kategorię',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedCategory,
-                      items: [
-                        const DropdownMenuItem(value: null, child: Text("Wszystkie")),
-                        ...availableCategories.map(
-                          (cat) => DropdownMenuItem(
-                            value: cat,
-                            child: Text(cat),
-                          ),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadStash,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+
+                    if (isSearchPanelVisible) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Column(
+                          children: [
+                            SearchBar(
+                              hintText: 'Search ingredient',
+                              leading: const Icon(Icons.search),
+                              onChanged: (value) {
+                                setState(() {
+                                  searchQuery = value.toLowerCase();
+                                });
+                              },
+                              elevation: const MaterialStatePropertyAll(2),
+                              shape: MaterialStatePropertyAll(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Material(
+                              elevation: 2,
+                              borderRadius: BorderRadius.circular(24),
+                              child: DropdownButtonFormField<String>(
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor:
+                                      Theme.of(context).colorScheme.surface,
+                                  labelText: 'Filter category',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                ),
+                                value: selectedCategory,
+                                items: [
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text("All"),
+                                  ),
+                                  ...availableCategories.map(
+                                    (cat) => DropdownMenuItem(
+                                      value: cat,
+                                      child: Text(cat),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCategory = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                         ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(child: _buildGroupedListView()),
-                ],
+                      ),
+                    ],
+                    Expanded(child: _buildGroupedListView()),
+                  ],
+                ),
               ),
-            ),
     );
   }
-
 
   Widget _buildGroupedListView() {
     final filteredGrouped = <String, List<UserStash>>{};
 
     groupedStash.forEach((category, items) {
       if (selectedCategory == null || selectedCategory == category) {
-        final filtered = items
-            .where((item) =>
-                item.ingredientName.toLowerCase().contains(searchQuery))
-            .toList();
+        final filtered =
+            items
+                .where(
+                  (item) =>
+                      item.ingredientName.toLowerCase().contains(searchQuery),
+                )
+                .toList();
 
-        filtered.sort((a, b) => sortAscending
-            ? a.amount.compareTo(b.amount)
-            : b.amount.compareTo(a.amount));
+        filtered.sort(
+          (a, b) =>
+              sortAscending
+                  ? a.amount.compareTo(b.amount)
+                  : b.amount.compareTo(a.amount),
+        );
 
         if (filtered.isNotEmpty) {
           filteredGrouped[category] = filtered;
@@ -199,45 +343,51 @@ class _UserStashScreenState extends State<UserStashScreen> {
 
     return ListView(
       padding: const EdgeInsets.all(12),
-      children: filteredGrouped.entries.map((entry) {
-        final category = entry.key;
-        final items = entry.value;
+      children:
+          filteredGrouped.entries.map((entry) {
+            final category = entry.key;
+            final items = entry.value;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(_iconForCategory(category)),
-                  const SizedBox(width: 8),
-                  Text(
-                    category,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(_iconForCategory(category)),
+                      const SizedBox(width: 8),
+                      Text(
+                        category,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.65,
-              ),
-              itemBuilder: (context, index) {
-                final entry = items[index];
-                final isSelected = selectedIngredientIds.contains(entry.ingredientId);
-                return _buildIngredientCard(entry, isSelected);
-              },
-            ),
-          ],
-        );
-      }).toList(),
+                ),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: items.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemBuilder: (context, index) {
+                    final entry = items[index];
+                    final isSelected = selectedIngredientIds.contains(
+                      entry.ingredientId,
+                    );
+                    return _buildIngredientCard(entry, isSelected);
+                  },
+                ),
+              ],
+            );
+          }).toList(),
     );
   }
 
@@ -279,9 +429,13 @@ class _UserStashScreenState extends State<UserStashScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: isSelected
-              ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
-              : null,
+          border:
+              isSelected
+                  ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  )
+                  : null,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -295,10 +449,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'images/przyklad.png',
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset('images/przyklad.png', fit: BoxFit.cover),
               ),
             ),
             Align(
@@ -329,26 +480,39 @@ class _UserStashScreenState extends State<UserStashScreen> {
                       children: [
                         GestureDetector(
                           onTap: () async {
-                            final userId = Supabase.instance.client.auth.currentUser?.id;
+                            final userId =
+                                Supabase.instance.client.auth.currentUser?.id;
                             if (userId == null) return;
 
-                            final current = selectedAmounts[entry.ingredientId] ?? 0;
+                            final current =
+                                selectedAmounts[entry.ingredientId] ?? 0;
                             final updated = current - 1;
 
                             if (updated <= 0) {
-                              await repository.removeFromStash(userId, entry.ingredientId);
+                              await repository.removeFromStash(
+                                userId,
+                                entry.ingredientId,
+                              );
                               setState(() {
                                 stash.removeAt(index);
                                 selectedAmounts.remove(entry.ingredientId);
                               });
                             } else {
-                              await repository.changeIngredientAmount(userId, entry.ingredientId, updated);
+                              await repository.changeIngredientAmount(
+                                userId,
+                                entry.ingredientId,
+                                updated,
+                              );
                               setState(() {
                                 selectedAmounts[entry.ingredientId] = updated;
                               });
                             }
                           },
-                          child: const Icon(Icons.remove, size: 20, color: Colors.white),
+                          child: const Icon(
+                            Icons.remove,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -362,15 +526,25 @@ class _UserStashScreenState extends State<UserStashScreen> {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            final userId = Supabase.instance.client.auth.currentUser?.id;
-                            final current = selectedAmounts[entry.ingredientId] ?? 0;
+                            final userId =
+                                Supabase.instance.client.auth.currentUser?.id;
+                            final current =
+                                selectedAmounts[entry.ingredientId] ?? 0;
                             final updated = current + 1;
                             setState(() {
                               selectedAmounts[entry.ingredientId] = updated;
                             });
-                            await repository.changeIngredientAmount(userId, entry.ingredientId, updated);
+                            await repository.changeIngredientAmount(
+                              userId,
+                              entry.ingredientId,
+                              updated,
+                            );
                           },
-                          child: const Icon(Icons.add, size: 20, color: Colors.white),
+                          child: const Icon(
+                            Icons.add,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -383,7 +557,9 @@ class _UserStashScreenState extends State<UserStashScreen> {
                 top: 6,
                 right: 6,
                 child: Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  isSelected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
                   color: Colors.white,
                 ),
               ),
