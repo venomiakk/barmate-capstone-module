@@ -22,7 +22,7 @@
 
 - [x] Dodawanie składników do zapasów
 - [x] Dodawanie alkoholi do zapasów
-- [ ] Aktualizacja stanu zapasów
+- [x] Aktualizacja stanu zapasów
 - [x] Śledzenie stanu zapasów
 - [x] Wyszukiwanie artykułów
 - [ ] Wyszukiwanie drinków
