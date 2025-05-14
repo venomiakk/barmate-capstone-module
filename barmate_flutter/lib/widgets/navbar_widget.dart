@@ -15,6 +15,7 @@ class NavbarWidget extends StatelessWidget {
           items: const <Widget>[
             Icon(Icons.home, size: 30),
             Icon(Icons.search, size: 30),
+            Icon(Icons.shopping_cart, size: 30), // Ikona dla Shopping List
             Icon(Icons.shopping_bag, size: 30),
             Icon(Icons.person, size: 30),
           ],

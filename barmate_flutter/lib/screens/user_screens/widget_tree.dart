@@ -3,12 +3,14 @@ import 'package:barmate/screens/user_screens/home_screen.dart';
 import 'package:barmate/screens/user_screens/search_screen.dart';
 import 'package:barmate/screens/user_screens/user_screen.dart';
 import 'package:barmate/screens/user_screens/user_stash_screen.dart';
+import 'package:barmate/screens/user_screens/shopping_list_screen.dart';
 import 'package:barmate/widgets/navbar_widget.dart';
 import 'package:flutter/material.dart';
 
 List<Widget> widgetList = [
   HomeScreen(),
   SearchPage(),
+  ShoppingListScreen(),
   UserStashScreen(),
   UserPage(),
 ];
