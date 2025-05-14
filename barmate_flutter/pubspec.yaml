@@ -41,6 +41,7 @@ dependencies:
   fl_chart: ^0.63.0
   jwt_decoder: ^2.0.1
   shared_preferences: ^2.5.3
+  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:
