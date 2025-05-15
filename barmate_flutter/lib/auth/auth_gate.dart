@@ -18,13 +18,13 @@ class AuthGate extends StatelessWidget {
       final jwt = JwtDecoder.decode(session.accessToken);
       final userId = jwt['user_metadata']['sub']?.toString() ?? '0';
       final userRole = jwt['user_role'];
-      await UserPreferences.setId(userId);
+      await UserPreferences.getInstance().setUserId(userId);
 
       final authService = AuthService();
       final userName = await authService.fetchUserLoginById(userId);
-      await UserPreferences.setUserName(userName.toString());
+      await UserPreferences.getInstance().setUserName(userName.toString());
       if(userRole == 'admin'){
-        await UserPreferences.setUserName('admin');
+        await UserPreferences.getInstance().setUserName('admin');
         return const AdminWidgetTree();
       }
       if (userName == null || userName.isEmpty) {

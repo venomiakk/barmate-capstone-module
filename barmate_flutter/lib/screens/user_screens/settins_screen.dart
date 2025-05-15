@@ -11,7 +11,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   String? selectedTitle;
 
-  final userPreferences = UserPreferences();
+  final userPreferences = UserPreferences.getInstance();
 
   @override
   void initState() {

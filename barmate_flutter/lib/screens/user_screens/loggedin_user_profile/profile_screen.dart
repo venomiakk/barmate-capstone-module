@@ -17,7 +17,7 @@ class UserPage extends StatefulWidget {
 class _UserPageState extends State<UserPage> {
   var logger = Logger(printer: PrettyPrinter());
   final LoggedinUserProfileController _controller =
-      LoggedinUserProfileController();
+      LoggedinUserProfileController.create();
   String? userTitle;
   String? userBio;
 
@@ -35,70 +35,82 @@ class _UserPageState extends State<UserPage> {
     setState(() {});
   }
 
-  void _navigateToSettings() async {
+  void _navigateToEditProfile() async {
     logger.d("Navigate to profile settings");
-  
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => EditProfileScreen(
-        userTitle: userTitle,
-        userBio: userBio,
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                EditProfileScreen(userTitle: userTitle, userBio: userBio),
       ),
-    ),
-  );
-  
-  if (result != null && result is Map<String, dynamic>) {
-    setState(() {
-      userTitle = result['title'];
-      userBio = result['bio'];
-    });
-    // Odśwież dane po powrocie z ekranu ustawień
-    await _loadData();
-  }
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        userTitle = result['title'];
+        userBio = result['bio'];
+      });
+      // Odśwież dane po powrocie z ekranu ustawień
+      await _loadData();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    logger.d("""
+    logger.i("""
       UserPage build method called
-      Username: ${UserPreferences().getUserName()},
-      ID: ${UserPreferences().getUserId()},
-      Title: ${UserPreferences().getUserTitle()}
+      Username: ${UserPreferences.getInstance().getUserName()},
+      ID: ${UserPreferences.getInstance().getUserId()},
+      Title: ${UserPreferences.getInstance().getUserTitle()}
       """);
-    Size size = MediaQuery.of(context).size;
+    // Size size = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Profile"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              logger.d("Favorite/history button pressed");
+              // New page with favorite drinks and history
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              logger.d("Share button pressed");
+              // Share profile functionality
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              logger.d("Settings button pressed");
+              // Navigate to overall settings page
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              logger.d("Logout button pressed");
+              _controller.logoutConfiramtionTooltip(context);
+              // Logout functionality
+              // Needs to ask for confirmation
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TODO: Mam wrażenie, że to jest niepotrzebne
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-              children: const [
-                Text(
-                  "Account",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Icon(Icons.favorite_border),
-                    SizedBox(width: 8),
-                    Icon(Icons.share),
-                    SizedBox(width: 8),
-                    Icon(Icons.logout),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             UserProfileWidget(
               userTitle: userTitle,
               userBio: userBio,
-              onSettingsTap: _navigateToSettings,
+              onSettingsTap: _navigateToEditProfile,
             ),
             const SizedBox(height: 16),
             FavouriteDrinksListWidget(),

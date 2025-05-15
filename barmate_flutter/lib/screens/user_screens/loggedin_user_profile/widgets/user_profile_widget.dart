@@ -16,7 +16,7 @@ class UserProfileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String username = UserPreferences().getUserName();
+    String username = UserPreferences.getInstance().getUserName();
     var logger = Logger(printer: PrettyPrinter());
     return Column(
       children: [

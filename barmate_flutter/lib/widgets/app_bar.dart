@@ -20,7 +20,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
   @override
   void initState() {
     super.initState();
-    username = UserPreferences().getUserName();
+    username = UserPreferences.getInstance().getUserName();
   }
 
   

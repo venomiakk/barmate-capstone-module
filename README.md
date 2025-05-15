@@ -1,5 +1,11 @@
 # barmate-capstone-module
 
+Aby uruchomić testy trzeba najpierw wygenerować pliki mock
+
+```shell
+flutter pub run build_runner build
+```
+
 ### wymagania funkcjonalne
 
 **gość**

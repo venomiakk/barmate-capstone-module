@@ -15,7 +15,7 @@ class _CreateCollectionState extends State<CreateCollection> {
     void logout() async {
       resetNotifiersToDefaults();
       try {
-        UserPreferences.clear(); // Clear user preferences
+        UserPreferences.getInstance().clear(); // Clear user preferences
         await authService.signOut();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

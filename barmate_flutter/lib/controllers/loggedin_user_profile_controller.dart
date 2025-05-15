@@ -17,9 +17,19 @@ class LoggedinUserProfileController {
   String? userTitle;
   final List<FavouriteDrink> favouriteDrinks = [];
 
+  // Fabryka do tworzenia instancji
+  static LoggedinUserProfileController Function() factory = 
+      () => LoggedinUserProfileController();
+  
+  // Metoda fabryczna
+  static LoggedinUserProfileController create() {
+    return factory();
+  }
+
+
   Future<String> getUserBio() async {
     try {
-      final userId = UserPreferences().getUserId();
+      final userId = UserPreferences.getInstance().getUserId();
       final userBio = await userProfileRepository.fetchUserBio(userId);
       return userBio;
     } catch (e) {
@@ -30,7 +40,7 @@ class LoggedinUserProfileController {
 
   Future<String> loadUserTitle() async {
     try {
-      final userId = UserPreferences().getUserId();
+      final userId = UserPreferences.getInstance().getUserId();
       final title = await userProfileRepository.fetchUserTitle(userId);
       userTitle = title;
       return title;
@@ -42,7 +52,7 @@ class LoggedinUserProfileController {
 
   Future<void> loadFavouriteDrinks() async {
     try {
-      final userId = UserPreferences().getUserId();
+      final userId = UserPreferences.getInstance().getUserId();
       final drinks = await repository.fetchFavouriteDrinksByUserId(userId);
       favouriteDrinks.clear();
       favouriteDrinks.addAll(drinks);
@@ -60,12 +70,42 @@ class LoggedinUserProfileController {
   Future<void> logout(BuildContext context) async {
     resetNotifiersToDefaults();
     try {
-      UserPreferences.clear();
+      UserPreferences.getInstance().clear();
       await authService.signOut();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
+    }
+  }
+
+  Future<void> logoutConfiramtionTooltip(BuildContext context) async {
+    // create tooltip with confirmation message
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+    // implement logout functionality
+    if (result == true) {
+      await logout(context);
+    } else {
+      logger.d("Logout cancelled");
     }
   }
 }

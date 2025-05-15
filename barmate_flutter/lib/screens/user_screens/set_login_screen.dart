@@ -85,7 +85,7 @@ class _SetLoginScreenState extends State<SetLoginScreen> {
                 ),
               ),
               onPressed: () {
-                final userId = UserPreferences().getUserId(); // Replace with actual user ID
+                final userId = UserPreferences.getInstance().getUserId(); // Replace with actual user ID
                 final login = loginController.text;
                 try{
                   authService.setLoginById(userId, login).then((value)=>{
@@ -98,7 +98,7 @@ class _SetLoginScreenState extends State<SetLoginScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Login set"), backgroundColor: Colors.green),
                     ),
-                      UserPreferences.setUserName(login),
+                      UserPreferences.getInstance().setUserName(login),
                       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>AuthGate())),
                     }
                   });
