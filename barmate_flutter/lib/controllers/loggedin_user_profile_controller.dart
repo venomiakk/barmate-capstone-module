@@ -6,6 +6,7 @@ import 'package:barmate/repositories/favourite_drinks_repository.dart';
 import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class LoggedinUserProfileController {
   final logger = Logger(printer: PrettyPrinter());
@@ -30,11 +31,11 @@ class LoggedinUserProfileController {
     try {
       final prefs = await UserPreferences.getInstance();
       final userId = prefs.getUserId();
-      logger.d("User ID: $userId");
+      // logger.d("User ID: $userId");
       final userBio = await userProfileRepository.fetchUserBio(userId);
       return userBio;
     } catch (e) {
-      logger.w(e);
+      logger.w("Error fetching user bio: $e");
       return 'No bio available';
     }
   }
@@ -47,7 +48,7 @@ class LoggedinUserProfileController {
       userTitle = title;
       return title;
     } catch (e) {
-      logger.w(e);
+      logger.w("Error fetching user title: $e");
       return 'No title available';
     }
   }
@@ -60,7 +61,7 @@ class LoggedinUserProfileController {
       favouriteDrinks.clear();
       favouriteDrinks.addAll(drinks);
     } catch (e) {
-      logger.w(e);
+      logger.w("Error fetching favourite drinks: $e");
     }
   }
 
@@ -109,7 +110,20 @@ class LoggedinUserProfileController {
     if (result == true) {
       await logout(context);
     } else {
-      logger.d("Logout cancelled");
+      // logger.d("Logout cancelled");
+    }
+  }
+
+  Future<String> loadUserAvatarUrl() async {
+    try {
+      final prefs = await UserPreferences.getInstance();
+      final userId = prefs.getUserId();
+      final avatarName = await userProfileRepository.fetchUserAvatar(userId);
+      final avatarUrl = '${constants.profilePicsUrl}/$avatarName';
+      return avatarUrl;
+    } catch (e) {
+      logger.w("Error fetching user avatar: $e");
+      return 'No avatar available';
     }
   }
 }

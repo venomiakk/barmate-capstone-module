@@ -20,6 +20,7 @@ class _UserPageState extends State<UserPage> {
       LoggedinUserProfileController.create();
   String? userTitle;
   String? userBio;
+  String? userAvatarUrl;
 
   // Dodaj nowe zmienne stanu
   String userName = '';
@@ -42,33 +43,35 @@ class _UserPageState extends State<UserPage> {
         userId = prefs.getUserId();
         userTitleFromPrefs = prefs.getUserTitle();
       });
-      logger.i("""
-        Username: $userName,
-        ID: $userId,
-        Title: $userTitleFromPrefs
-      """);
+      // logger.i("""
+      //   Username: $userName,
+      //   ID: $userId,
+      //   Title: $userTitleFromPrefs
+      // """);
     } catch (e) {
-      logger.e("Błąd podczas ładowania preferencji: $e");
+      logger.e("Error loading preferences: $e");
     }
   }
 
   Future<void> _loadData() async {
-    logger.d("_loadData");
+    // logger.d("_loadData");
     userTitle = await _controller.loadUserTitle();
     userBio = await _controller.getUserBio();
+    userAvatarUrl = await _controller.loadUserAvatarUrl();
     await _controller.loadFavouriteDrinks();
     setState(() {});
   }
 
   void _navigateToEditProfile() async {
-    logger.d("Navigate to profile settings");
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder:
-            (context) =>
-                EditProfileScreen(userTitle: userTitle, userBio: userBio),
+            (context) => EditProfileScreen(
+              userTitle: userTitle,
+              userBio: userBio,
+              userImageUrl: userAvatarUrl,
+            ),
       ),
     );
 
@@ -77,21 +80,24 @@ class _UserPageState extends State<UserPage> {
         userTitle = result['title'];
         userBio = result['bio'];
       });
-      // Odśwież dane po powrocie z ekranu ustawień
+
+      // Odśwież wszystkie dane po powrocie z ekranu ustawień
       await _loadData();
+      await _loadPrefsData(); // Dodaj to, aby odświeżyć również dane z preferencji
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // Usuń bezpośrednie wywołania UserPreferences tutaj
-    logger.i("""
-      UserPage build method called
-      Username: $userName,
-      ID: $userId,
-      Title: $userTitleFromPrefs
-    """);
+    // logger.i("""
+    //   UserPage build method called
+    //   Username: $userName,
+    //   ID: $userId,
+    //   Title: $userTitleFromPrefs
+    // """);
     // Size size = MediaQuery.of(context).size;
+    // logger.i("Avatar URL: $userAvatarUrl");
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
@@ -137,6 +143,7 @@ class _UserPageState extends State<UserPage> {
               username: userName,
               userTitle: userTitle,
               userBio: userBio,
+              userAvatarUrl: userAvatarUrl,
               onSettingsTap: _navigateToEditProfile,
             ),
             const SizedBox(height: 16),

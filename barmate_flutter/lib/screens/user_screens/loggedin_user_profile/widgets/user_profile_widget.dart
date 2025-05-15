@@ -5,6 +5,7 @@ class UserProfileWidget extends StatelessWidget {
   final String? userTitle;
   final String? userBio;
   final String? username;
+  final String? userAvatarUrl;
   final VoidCallback onSettingsTap;
 
   const UserProfileWidget({
@@ -12,6 +13,7 @@ class UserProfileWidget extends StatelessWidget {
     required this.username,
     required this.userTitle,
     required this.userBio,
+    required this.userAvatarUrl,
     required this.onSettingsTap,
   });
 
@@ -27,7 +29,11 @@ class UserProfileWidget extends StatelessWidget {
             Expanded(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: AssetImage('images/user-picture.png'),
+                backgroundImage:
+                    userAvatarUrl != null
+                        ? NetworkImage(userAvatarUrl!)
+                        : AssetImage('images/unavailable-image.jpg')
+                            as ImageProvider,
               ),
             ),
             Expanded(

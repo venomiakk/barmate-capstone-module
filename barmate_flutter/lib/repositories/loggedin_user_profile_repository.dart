@@ -12,7 +12,7 @@ class LoggedinUserProfileRepository {
         params: {'arg_userid': userId},
       );
       if (response != null) {
-        logger.d('User bio fetched successfully: ${response[0]['user_bio']}');
+        // logger.d('User bio fetched successfully: ${response[0]['user_bio']}');
         return response[0]['user_bio'] as String;
       }
     } catch (e) {
@@ -28,14 +28,32 @@ class LoggedinUserProfileRepository {
         params: {'arg_userid': userId},
       );
       if (response != null) {
-        logger.d(
-          'User title fetched successfully: ${response[0]['user_title']}',
-        );
+        // logger.d(
+        //   'User title fetched successfully: ${response[0]['user_title']}',
+        // );
         return response[0]['user_title'] as String;
       }
     } catch (e) {
       logger.e('Error fetching user title: $e');
     }
     return 'No title available';
+  }
+
+  Future<String> fetchUserAvatar(var userId) async {
+    try {
+      final response = await client.rpc(
+        'get_user_avatar',
+        params: {'arg_userid': userId},
+      );
+      if (response != null) {
+        // logger.d(
+        //   'User avatar fetched successfully: ${response[0]['user_avatar']}',
+        // );
+        return response[0]['avatar_url'] as String;
+      }
+    } catch (e) {
+      logger.e('Error fetching user avatar: $e');
+    }
+    return 'No avatar available';
   }
 }
