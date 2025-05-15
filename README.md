@@ -39,7 +39,7 @@ flutter pub run build_runner build
 - [x] Dodawanie składników do listy zakupów
 - [ ] Usuwanie składników z listy zakupów
 - [ ] Powiadomienia o niskim stanie zapasów
-- [ ] Ulubione drinki
+- [x] Ulubione drinki **(są w profilu)**
 - [ ] Komentowanie przepisów
 - [ ] Ocenianie przepisów
 - [ ] Rejestracja przygotowanych drinków
@@ -48,7 +48,7 @@ flutter pub run build_runner build
 - [ ] Wyszukiwanie innych użytkowników
 - [ ] Dostosowywanie preferencji
 - [x] Personalizacja interfejsu
-- [ ] Personalizacja profilu
+- [x] Personalizacja profilu
 - [ ] Wyświetlanie instrukcji przygotowania drinków
 - [ ] Wyświetlanie wskazówek dotyczących dekoracji
 - [ ] Zgłaszanie nieodpowiednich treści
