@@ -1,4 +1,5 @@
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
+import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_feed_widget.dart';
@@ -26,6 +27,7 @@ class _UserPageState extends State<UserPage> {
   String userName = '';
   String userId = '';
   String? userTitleFromPrefs;
+  List<FavouriteDrink> favouriteDrinks = [];
 
   @override
   void initState() {
@@ -58,7 +60,7 @@ class _UserPageState extends State<UserPage> {
     userTitle = await _controller.loadUserTitle();
     userBio = await _controller.getUserBio();
     userAvatarUrl = await _controller.loadUserAvatarUrl();
-    await _controller.loadFavouriteDrinks();
+    favouriteDrinks = await _controller.loadUserFavouriteDrinks();
     setState(() {});
   }
 
@@ -98,6 +100,7 @@ class _UserPageState extends State<UserPage> {
     // """);
     // Size size = MediaQuery.of(context).size;
     // logger.i("Avatar URL: $userAvatarUrl");
+    // logger.i("favouriteDrinks: $favouriteDrinks");
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
@@ -146,9 +149,24 @@ class _UserPageState extends State<UserPage> {
               userAvatarUrl: userAvatarUrl,
               onSettingsTap: _navigateToEditProfile,
             ),
-            const SizedBox(height: 16),
-            FavouriteDrinksListWidget(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+
+            // Add a title for the section
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Favorite Drinks',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+
+            // Set a fixed height for the widget
+            SizedBox(
+              height: 170, // Adjust height as needed
+              child: FavouriteDrinksListWidget(initialDrinks: favouriteDrinks),
+            ),
+
+            const SizedBox(height: 24),
             UserProfileFeedWidget(),
           ],
         ),

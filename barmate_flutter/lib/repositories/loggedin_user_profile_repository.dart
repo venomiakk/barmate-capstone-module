@@ -1,3 +1,4 @@
+import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -55,5 +56,21 @@ class LoggedinUserProfileRepository {
       logger.e('Error fetching user avatar: $e');
     }
     return 'No avatar available';
+  }
+
+  Future<List<dynamic>> fetchUserFavouriteDrinks(var userId) async {
+    try {
+      final response = await client.rpc(
+        'get_favourite_drinks_by_user_id',
+        params: {'user_id': userId},
+      );
+      if (response != null) {
+        // logger.d('User favourite drinks fetched successfully: $response');
+        return response;
+      }
+    } catch (e) {
+      logger.e('Error fetching user favourite drinks: $e');
+    }
+    return [];
   }
 }
