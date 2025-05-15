@@ -2,7 +2,7 @@ class FavouriteDrink {
   final int id;
   final int recipeId;
   final String drinkName;
-
+  //TODO: Add image url
   FavouriteDrink({
     required this.id,
     required this.recipeId,

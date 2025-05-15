@@ -31,6 +31,7 @@ class UserProfileWidget extends StatelessWidget {
                 radius: 50,
                 backgroundImage:
                     userAvatarUrl != null
+                        // TODO: ten obrazek jest chyba cachowany i nie zmienia się czasem sie zmienia po przeladowaniu
                         ? NetworkImage(userAvatarUrl!)
                         : AssetImage('images/unavailable-image.jpg')
                             as ImageProvider,

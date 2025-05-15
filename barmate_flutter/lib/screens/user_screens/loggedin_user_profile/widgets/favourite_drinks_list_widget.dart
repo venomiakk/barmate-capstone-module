@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart';
 import 'package:logger/logger.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
+import 'package:barmate/data/notifiers.dart';
 
 class FavouriteDrinksListWidget extends StatefulWidget {
   final List<FavouriteDrink>? initialDrinks;
@@ -24,9 +25,9 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialDrinks != null && widget.initialDrinks!.isNotEmpty) {
-      _convertAndSetDrinks();
-    }
+    _convertAndSetDrinks();
+    // if (widget.initialDrinks != null && widget.initialDrinks!.isNotEmpty) {
+    // }
   }
 
   void _convertAndSetDrinks() {
@@ -38,7 +39,7 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
                 id: favDrink.id,
                 name: favDrink.drinkName, // Use name with fallback
                 imageUrl:
-                    'https://hips.hearstapps.com/hmg-prod/images/drinks-to-avoid-1621959532.jpg', // Use imageUrl properly
+                    'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/drinkpics//sample_drink.jpg', // Use imageUrl properly
                 isFavorite: true,
               ),
             )
@@ -123,18 +124,70 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
     if (favoriteDrinks.isEmpty) {
       return Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Make the column more compact
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.local_bar_outlined, size: 24), // Smaller icon
-            const SizedBox(height: 8), // Reduced spacing
-            Text('No favorite drinks yet', style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 4), // Reduced spacing
-            TextButton(
-              onPressed: () {
-                // TODO: Navigate to drink discovery screen
-                logger.w('TODO: Navigate to drink discovery screen');
-              },
-              child: const Text('Discover Drinks'),
+            Icon(Icons.local_bar_outlined, size: 36, color: Colors.grey[400]),
+            const SizedBox(height: 8),
+            Text(
+              'No favorite drinks yet',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+
+            // Navigation options
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Discover button
+                Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        // Navigate to discover/search screen
+                        selectedPageNotifier.value =
+                            1; // Search index from navbar
+                      },
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: const Icon(
+                          Icons.search,
+                          size: 24,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text('Discover', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+
+                const SizedBox(width: 24),
+
+                // Popular drinks button
+                Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        // Navigate to popular drinks
+                        selectedPageNotifier.value =
+                            0; // Home index from navbar
+                      },
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: const Icon(
+                          Icons.local_bar,
+                          size: 24,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text('Popular', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

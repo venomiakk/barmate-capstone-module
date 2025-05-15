@@ -73,4 +73,18 @@ class LoggedinUserProfileRepository {
     }
     return [];
   }
+
+  Future<void> removeDrink(int drinkId) async {
+    try {
+      final response = await client.rpc(
+        'remove_from_fav_recipe',
+        params: {'arg_joinid': drinkId},
+      );
+      if (response != null) {
+        // logger.d('Drink removed from favourites successfully: $response');
+      }
+    } catch (e) {
+      logger.e('Error removing drink from favourites: $e');
+    }
+  }
 }

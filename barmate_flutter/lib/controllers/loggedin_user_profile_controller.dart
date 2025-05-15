@@ -126,9 +126,8 @@ class LoggedinUserProfileController {
   }
 
   Future<void> removeDrink(int drinkId) async {
-    // TODO: Implement logic to remove from favorites
     try {
-      logger.w("Removing drink with ID in join table: $drinkId");
+      await userProfileRepository.removeDrink(drinkId);
     } catch (e) {
       logger.w("Error removing drink: $e");
     }
