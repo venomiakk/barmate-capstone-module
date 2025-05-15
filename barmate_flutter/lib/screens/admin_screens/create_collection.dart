@@ -11,23 +11,30 @@ class CreateCollection extends StatefulWidget {
 }
 
 class _CreateCollectionState extends State<CreateCollection> {
-   final authService = AuthService();
-    void logout() async {
-      resetNotifiersToDefaults();
-      try {
-        UserPreferences.getInstance().clear(); // Clear user preferences
-        await authService.signOut();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-        );
-      }
+  final authService = AuthService();
+  void logout() async {
+    resetNotifiersToDefaults();
+    try {
+      // Pobierz instancję preferencji z await
+      final prefs = await UserPreferences.getInstance();
+
+      // Wyczyść preferencje z await
+      await prefs.clear();
+
+      // Wyloguj użytkownika
+      await authService.signOut();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
     }
+  }
+
   @override
   Widget build(BuildContext context) {
-  Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
-       body: SafeArea(
+      body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -53,18 +60,13 @@ class _CreateCollectionState extends State<CreateCollection> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: IconButton(
-                        icon: const Icon(
-                          Icons.logout,
-                          size: 30,
-                        ),
+                        icon: const Icon(Icons.logout, size: 30),
                         onPressed: logout, // Link the logout function here
                       ),
                     ),
                   ],
                 ),
               ), // Adjust the height as needed
-
-             
             ],
           ),
         ),

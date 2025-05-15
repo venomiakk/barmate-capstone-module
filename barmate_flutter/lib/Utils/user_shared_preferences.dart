@@ -14,8 +14,13 @@ class UserPreferences {
   UserPreferences._();
 
   // Fabryka dla tworzenia/zwracania instancji
-  static UserPreferences getInstance() {
-    _instance ??= UserPreferences._();
+  static Future<UserPreferences> getInstance() async {
+    if (_instance == null) {
+      _instance = UserPreferences._();
+      await _instance!.init();
+    } else if (_instance!._preferences == null) {
+      await _instance!.init();
+    }
     return _instance!;
   }
 

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 class UserProfileWidget extends StatelessWidget {
   final String? userTitle;
   final String? userBio;
+  final String? username;
   final VoidCallback onSettingsTap;
 
   const UserProfileWidget({
     super.key,
+    required this.username,
     required this.userTitle,
     required this.userBio,
     required this.onSettingsTap,
@@ -16,7 +17,6 @@ class UserProfileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String username = UserPreferences.getInstance().getUserName();
     var logger = Logger(printer: PrettyPrinter());
     return Column(
       children: [
@@ -36,7 +36,7 @@ class UserProfileWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    username,
+                    username!,
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   Text(

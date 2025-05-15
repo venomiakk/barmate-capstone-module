@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 class AppBarWidget extends StatefulWidget implements PreferredSizeWidget {
   const AppBarWidget({super.key});
 
-
   @override
   State<AppBarWidget> createState() => _AppBarWidgetState();
 
@@ -16,14 +15,31 @@ class AppBarWidget extends StatefulWidget implements PreferredSizeWidget {
 
 class _AppBarWidgetState extends State<AppBarWidget> {
   final authService = AuthService();
-  String username='';
+  String username = ''; // Domyślna wartość
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    username = UserPreferences.getInstance().getUserName();
+    _loadUsername();
   }
 
-  
+  Future<void> _loadUsername() async {
+    try {
+      final prefs = await UserPreferences.getInstance();
+      setState(() {
+        username = prefs.getUserName();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading username: $e');
+      setState(() {
+        username = 'User';
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
@@ -41,63 +57,68 @@ class _AppBarWidgetState extends State<AppBarWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: hour < 12
-                    ? [
-                        const Icon(Icons.wb_sunny, size: 30),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'Good Morning',
-                          style: TextStyle(fontSize: fontSize2),
-                        ),
-                      ]
-                    : hour < 18
+                children:
+                    hour < 12
                         ? [
-                            const Icon(Icons.wb_sunny, size: 30),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'Good Afternoon',
-                              style: TextStyle(fontSize: fontSize2),
-                            ),
-                          ]
+                          const Icon(Icons.wb_sunny, size: 30),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Good Morning',
+                            style: TextStyle(fontSize: fontSize2),
+                          ),
+                        ]
+                        : hour < 18
+                        ? [
+                          const Icon(Icons.wb_sunny, size: 30),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Good Afternoon',
+                            style: TextStyle(fontSize: fontSize2),
+                          ),
+                        ]
                         : [
-                            const Icon(Icons.nights_stay, size: 30),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'Good Evening',
-                              style: TextStyle(fontSize: fontSize2),
-                            ),
-                          ],
+                          const Icon(Icons.nights_stay, size: 30),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Good Evening',
+                            style: TextStyle(fontSize: fontSize2),
+                          ),
+                        ],
               ),
-              Text(
-                username,
-                style: const TextStyle(
-                  fontSize: fontSize1,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              _isLoading
+                  ? const Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: fontSize2),
+                  )
+                  : Text(
+                    username,
+                    style: const TextStyle(
+                      fontSize: fontSize1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
             ],
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 25),
-              child: IconButton(
-              icon: Icon(
-                currentTheme ? Icons.dark_mode : Icons.light_mode,
-                color: Theme.of(context).colorScheme.primary,
-                size: 40,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 25,
               ),
+              child: IconButton(
+                icon: Icon(
+                  currentTheme ? Icons.dark_mode : Icons.light_mode,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 40,
+                ),
                 onPressed: () {
                   themeNotifier.value = !themeNotifier.value;
                 },
               ),
             ),
-            
           ],
         );
       },
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(100.0);
 }

@@ -21,10 +21,35 @@ class _UserPageState extends State<UserPage> {
   String? userTitle;
   String? userBio;
 
+  // Dodaj nowe zmienne stanu
+  String userName = '';
+  String userId = '';
+  String? userTitleFromPrefs;
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadPrefsData(); // Dodaj tę metodę
+  }
+
+  // Dodaj tę metodę do ładowania danych z preferencji
+  Future<void> _loadPrefsData() async {
+    try {
+      final prefs = await UserPreferences.getInstance();
+      setState(() {
+        userName = prefs.getUserName();
+        userId = prefs.getUserId();
+        userTitleFromPrefs = prefs.getUserTitle();
+      });
+      logger.i("""
+        Username: $userName,
+        ID: $userId,
+        Title: $userTitleFromPrefs
+      """);
+    } catch (e) {
+      logger.e("Błąd podczas ładowania preferencji: $e");
+    }
   }
 
   Future<void> _loadData() async {
@@ -59,12 +84,13 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Usuń bezpośrednie wywołania UserPreferences tutaj
     logger.i("""
       UserPage build method called
-      Username: ${UserPreferences.getInstance().getUserName()},
-      ID: ${UserPreferences.getInstance().getUserId()},
-      Title: ${UserPreferences.getInstance().getUserTitle()}
-      """);
+      Username: $userName,
+      ID: $userId,
+      Title: $userTitleFromPrefs
+    """);
     // Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
@@ -108,6 +134,7 @@ class _UserPageState extends State<UserPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UserProfileWidget(
+              username: userName,
               userTitle: userTitle,
               userBio: userBio,
               onSettingsTap: _navigateToEditProfile,

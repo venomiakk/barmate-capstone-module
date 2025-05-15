@@ -18,19 +18,23 @@ class AuthGate extends StatelessWidget {
       final jwt = JwtDecoder.decode(session.accessToken);
       final userId = jwt['user_metadata']['sub']?.toString() ?? '0';
       final userRole = jwt['user_role'];
-      await UserPreferences.getInstance().setUserId(userId);
+
+      // Pobierz instancję preferencji tylko raz
+      final prefs = await UserPreferences.getInstance();
+      await prefs.setUserId(userId);
 
       final authService = AuthService();
       final userName = await authService.fetchUserLoginById(userId);
-      await UserPreferences.getInstance().setUserName(userName.toString());
-      if(userRole == 'admin'){
-        await UserPreferences.getInstance().setUserName('admin');
+      await prefs.setUserName(userName.toString());
+
+      if (userRole == 'admin') {
+        await prefs.setUserName('admin');
         return const AdminWidgetTree();
       }
+
       if (userName == null || userName.isEmpty) {
         return const SetLoginScreen();
       } else {
-        
         return const WidgetTree();
       }
     } else {
@@ -59,7 +63,9 @@ class AuthGate extends StatelessWidget {
                 );
               } else if (futureSnapshot.hasError) {
                 return Scaffold(
-                  body: Center(child: Text('Wystąpił błąd: ${futureSnapshot.error}')),
+                  body: Center(
+                    child: Text('Wystąpił błąd: ${futureSnapshot.error}'),
+                  ),
                 );
               } else {
                 return futureSnapshot.data!;
