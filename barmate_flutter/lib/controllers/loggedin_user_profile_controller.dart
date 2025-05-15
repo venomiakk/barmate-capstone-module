@@ -6,17 +6,15 @@ import 'package:barmate/repositories/favourite_drinks_repository.dart';
 import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class LoggedinUserProfileController {
   final logger = Logger(printer: PrettyPrinter());
   final authService = AuthService();
-  final FavouriteDrinkRepository repository = FavouriteDrinkRepository();
   final LoggedinUserProfileRepository userProfileRepository =
       LoggedinUserProfileRepository();
 
   String? userTitle;
-  final List<FavouriteDrink> favouriteDrinks = [];
-
   // Fabryka do tworzenia instancji
   static LoggedinUserProfileController Function() factory =
       () => LoggedinUserProfileController();
@@ -30,11 +28,11 @@ class LoggedinUserProfileController {
     try {
       final prefs = await UserPreferences.getInstance();
       final userId = prefs.getUserId();
-      logger.d("User ID: $userId");
+      // logger.d("User ID: $userId");
       final userBio = await userProfileRepository.fetchUserBio(userId);
       return userBio;
     } catch (e) {
-      logger.w(e);
+      logger.w("Error fetching user bio: $e");
       return 'No bio available';
     }
   }
@@ -47,26 +45,8 @@ class LoggedinUserProfileController {
       userTitle = title;
       return title;
     } catch (e) {
-      logger.w(e);
+      logger.w("Error fetching user title: $e");
       return 'No title available';
-    }
-  }
-
-  Future<void> loadFavouriteDrinks() async {
-    try {
-      final prefs = await UserPreferences.getInstance();
-      final userId = prefs.getUserId();
-      final drinks = await repository.fetchFavouriteDrinksByUserId(userId);
-      favouriteDrinks.clear();
-      favouriteDrinks.addAll(drinks);
-    } catch (e) {
-      logger.w(e);
-    }
-  }
-
-  void removeFavouriteDrink(int index) {
-    if (index >= 0 && index < favouriteDrinks.length) {
-      favouriteDrinks.removeAt(index);
     }
   }
 
@@ -109,7 +89,47 @@ class LoggedinUserProfileController {
     if (result == true) {
       await logout(context);
     } else {
-      logger.d("Logout cancelled");
+      // logger.d("Logout cancelled");
+    }
+  }
+
+  Future<String> loadUserAvatarUrl() async {
+    try {
+      final prefs = await UserPreferences.getInstance();
+      final userId = prefs.getUserId();
+      final avatarName = await userProfileRepository.fetchUserAvatar(userId);
+      final avatarUrl = '${constants.profilePicsUrl}/$avatarName';
+      return avatarUrl;
+    } catch (e) {
+      logger.w("Error fetching user avatar: $e");
+      return 'No avatar available';
+    }
+  }
+
+  Future<List<FavouriteDrink>> loadUserFavouriteDrinks() async {
+    try {
+      final prefs = await UserPreferences.getInstance();
+      final userId = prefs.getUserId();
+      final drinks = await userProfileRepository.fetchUserFavouriteDrinks(
+        userId,
+      );
+      // change to List<FavouriteDrink>
+      final favouriteDrinks =
+          drinks.map((drink) => FavouriteDrink.fromJson(drink)).toList();
+      // logger.i("User favourite drinks: $favouriteDrinks");
+      return favouriteDrinks;
+      // return drinks.cast<FavouriteDrink>();
+    } catch (e) {
+      logger.w("Error fetching user favourite drinks: $e");
+      return [];
+    }
+  }
+
+  Future<void> removeDrink(int drinkId) async {
+    try {
+      await userProfileRepository.removeDrink(drinkId);
+    } catch (e) {
+      logger.w("Error removing drink: $e");
     }
   }
 }
