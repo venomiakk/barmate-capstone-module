@@ -1,4 +1,5 @@
 import 'package:barmate/model/ingredient_model.dart';
+import 'package:barmate/model/tag_model.dart';
 
 class Recipe {
   final int id;
@@ -6,6 +7,7 @@ class Recipe {
   final dynamic description;
   final List<Ingredient>? ingredients;
   final String? photoUrl;
+  final List<TagModel>? tags;
 
   Recipe({
     required this.id,
@@ -13,6 +15,7 @@ class Recipe {
     required this.description,
     this.ingredients,
     this.photoUrl,
+    this.tags,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,11 @@ class Recipe {
       photoUrl: json['photo_url'] != null
           ? json['photo_url'] as String
           : null,
+      tags: json['tags'] != null
+          ? (json['tags'] as List<dynamic>)
+              .map((tag) => TagModel.fromMap(tag))
+              .toList()
+          : null,
     );
   }
 
@@ -38,6 +46,7 @@ class Recipe {
       'description': description,
       'ingredients': ingredients?.map((ingredient) => ingredient.toJson()).toList(),
       'photo_url': photoUrl,
+      'tags': tags?.map((tag) => tag.toMap()).toList(),
     };
   }
 }

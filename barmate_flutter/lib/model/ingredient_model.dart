@@ -4,8 +4,9 @@ class Ingredient {
   final String? description;
   final String? unit;
   final String? photo_url;
+  final String? category;
 
-  Ingredient({required this.id, required this.name, this.description, this.unit, this.photo_url});
+  Ingredient({required this.id, required this.name, this.description, this.unit, this.photo_url, this.category});
 
   factory Ingredient.fromJson(Map<String, dynamic> json) {
     return Ingredient(
@@ -17,6 +18,8 @@ class Ingredient {
       ? json['unit'] as String : null,
       photo_url: json['photo_url'] != null
       ? json['photo_url'] as String : null,
+      category: json['category'] != null
+      ? json['category'] as String : null,
     );
   }
 
@@ -27,6 +30,7 @@ class Ingredient {
       'description': description,
       'unit': unit,
       'photo_url': photo_url,
+      'category': category,
     };
   }
 }

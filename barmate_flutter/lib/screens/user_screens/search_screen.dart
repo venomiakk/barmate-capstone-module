@@ -1,8 +1,14 @@
 import 'package:barmate/model/account_model.dart';
+import 'package:barmate/model/category_model.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/model/tag_model.dart';
+import 'package:barmate/repositories/category_repository.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
 import 'package:barmate/repositories/account_repository.dart';
+import 'package:barmate/repositories/tag_repository.dart';
+import 'package:barmate/screens/user_screens/search_filter_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
@@ -19,11 +25,16 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  var logger = Logger(printer: PrettyPrinter());
+
   final IngredientRepository ingredientRepository = IngredientRepository();
   final UserStashRepository userStashRepository = UserStashRepository();
   final RecipeRepository recipeRepository = RecipeRepository();
-  final ShoppingListRepository shoppingListRepository = ShoppingListRepository();
+  final ShoppingListRepository shoppingListRepository =
+      ShoppingListRepository();
   final AccountRepository accountRepository = AccountRepository();
+  final CategoryRepository categoryRepository = CategoryRepository();
+  final TagRepository tagRepository = TagRepository();
 
   final List<Ingredient> ingredients = [];
   final List<Recipe> recipes = [];
@@ -33,9 +44,15 @@ class _SearchPageState extends State<SearchPage> {
   final List<Account> filteredAccounts = [];
   final List<dynamic> filteredItems = [];
 
+  final List<Map<String, bool>> filters = [];
+  final List<Map<String, bool>> categories = [];
+  final List<Map<String, bool>> tags = [];
+
   int counter = 1;
   final int minValue = 1;
   final int maxValue = 99999;
+
+  String searchText = '';
 
   @override
   void initState() {
@@ -43,186 +60,13 @@ class _SearchPageState extends State<SearchPage> {
     _loadIngredients();
     _loadRecipes();
     _loadAccounts();
-  }
-
-  Future<void> _loadIngredients() async {
-    final cached = await cache.load('ingredients', null);
-
-    if (cached != null && cached is List) {
-      print('Loaded ingredients from cache');
-
-      final List<Ingredient> cachedIngredients =
-          cached
-              .map<Ingredient>(
-                (item) => Ingredient.fromJson(item as Map<String, dynamic>),
-              )
-              .toList();
-
-      setState(() {
-        ingredients.addAll(cachedIngredients);
-      });
-    } else {
-      print('Fetching ingredients from API');
-
-      final List<Ingredient> fetchedIngredients =
-          await ingredientRepository.fetchAllIngredients();
-
-      final List<Map<String, dynamic>> ingredientMaps =
-          fetchedIngredients.map((i) => i.toJson()).toList();
-
-      cache.remember('ingredients', ingredientMaps, 120);
-      cache.write('ingredients', ingredientMaps, 120);
-
-      setState(() {
-        ingredients.addAll(fetchedIngredients);
-      });
-    }
-  }
-
-  Future<void> _loadRecipes() async {
-    final cached = await cache.load('recipes', null);
-
-    if (cached != null && cached is List) {
-      print('Loaded recipes from cache');
-
-      final List<Recipe> cachedRecipes =
-          cached
-              .map<Recipe>(
-                (item) => Recipe.fromJson(item as Map<String, dynamic>),
-              )
-              .toList();
-
-      setState(() {
-        recipes.addAll(cachedRecipes);
-      });
-    } else {
-      print('Fetching recipes from API');
-
-      final List<Recipe> fetchedRecipes =
-          await recipeRepository.getAllRecipes();
-
-      final List<Map<String, dynamic>> recipeMaps =
-          fetchedRecipes.map((i) => i.toJson()).toList();
-
-      cache.remember('recipes', recipeMaps, 120);
-      cache.write('recipes', recipeMaps, 120);
-
-      setState(() {
-        recipes.addAll(fetchedRecipes);
-      });
-    }
-  }
-
-  Future<void> _loadAccounts() async {
-    final cached = await cache.load('accounts', null);
-
-    if (cached != null && cached is List) {
-      print('Loaded accounts from cache');
-
-      final List<Account> cachedAccounts =
-          cached
-              .map<Account>(
-                (item) => Account.fromJson(item as Map<String, dynamic>),
-              )
-              .toList();
-
-      setState(() {
-        accounts.addAll(cachedAccounts);
-      });
-    } else {
-      print('Fetching accounts from API');
-
-      final List<Account> fetchedAccounts =
-          await accountRepository.fetchAllUsers();
-
-      final List<Map<String, dynamic>> accountMaps =
-          fetchedAccounts.map((i) => i.toJson()).toList();
-
-      cache.remember('accounts', accountMaps, 120);
-      cache.write('accounts', accountMaps, 120);
-
-      setState(() {
-        accounts.addAll(fetchedAccounts);
-      });
-    }
-  }
-
-  Future<void> _addToStash(int ingredientId, int quantity) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
-      await userStashRepository.addToStash(userId, ingredientId, quantity);
-    }
-  }
-
-  Future<void> _addToShoppingList(int ingredientId, int quantity) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
-      await shoppingListRepository.addToShoppingList(
-        userId,
-        ingredientId,
-        quantity,
-      );
-    }
-  }
-
-  void _filterIngredients(String query) {
-    setState(() {
-      filteredItems.clear();
-      filteredIngredients.clear();
-      filteredRecipes.clear();
-      filteredAccounts.clear();
-
-      if (query.isEmpty) return;
-
-      final lowerQuery = query.toLowerCase();
-
-      final allMatches = <Map<String, dynamic>>[];
-
-      for (final ingredient in ingredients) {
-        if (ingredient.name.toLowerCase().contains(lowerQuery)) {
-          final similarity = StringSimilarity.compareTwoStrings(
-            ingredient.name.toLowerCase(),
-            lowerQuery,
-          );
-          allMatches.add({'item': ingredient, 'similarity': similarity});
-        }
-      }
-
-      for (final recipe in recipes) {
-        if (recipe.name.toLowerCase().contains(lowerQuery) ||
-            recipe.ingredients?.any(
-                  (ingredient) =>
-                      ingredient.name.toLowerCase().contains(lowerQuery),
-                ) ==
-                true) {
-          final similarity = StringSimilarity.compareTwoStrings(
-            recipe.name.toLowerCase(),
-            lowerQuery,
-          );
-          allMatches.add({'item': recipe, 'similarity': similarity});
-        }
-      }
-
-      for (final account in accounts) {
-        if (account.login.toLowerCase().contains(lowerQuery)) {
-          final similarity = StringSimilarity.compareTwoStrings(
-            account.login.toLowerCase(),
-            lowerQuery,
-          );
-          allMatches.add({'item': account, 'similarity': similarity});
-        }
-      }
-
-      allMatches.sort(
-        (a, b) =>
-            (b['similarity'] as double).compareTo(a['similarity'] as double),
-      );
-
-      filteredItems.addAll(allMatches.map((e) => e['item']));
-
-      filteredIngredients.addAll(filteredItems.whereType<Ingredient>());
-      filteredRecipes.addAll(filteredItems.whereType<Recipe>());
-    });
+    filters.addAll([
+      {'Ingredients': true},
+      {'Recipes': true},
+      {'Users': true},
+    ]);
+    _loadTags();
+    _loadCategories();
   }
 
   Future<void> _showAddToDialog(
@@ -276,7 +120,7 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                             ),
                             child: Text(
-                              'Add to ' + destination,
+                              'Add to $destination',
                               style: TextStyle(fontSize: 16),
                             ),
                           ),
@@ -369,16 +213,25 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: SearchBar(
               hintText: 'Search',
-              onChanged: _filterIngredients,
+              onChanged: (query){
+                setState(() {
+                  searchText = query;
+                });
+                _filterIngredients(query);
+              },
               leading: const Icon(Icons.search),
               trailing: <Widget>[
                 IconButton(
                   icon: const Icon(Icons.mic),
-                  onPressed: () => _showFilterDialog(context),
+                  onPressed: () {
+                    // Implement voice search functionality
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.filter_list),
-                  onPressed: () => _showFilterDialog(context),
+                  onPressed: () {
+                    _showFilterDialog(context);
+                  },
                 ),
               ],
             ),
@@ -389,29 +242,21 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _showFilterDialog(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SizedBox(
-              height: 400,
-              width: 300,
-              child: Center(
-                child: Text(
-                  'Ustawienia / informacje',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => SearchFilterScreen(
+              filters: filters,
+              categories: categories,
+              tags: tags,
             ),
-          ),
-        );
-      },
+      ),
     );
+    _filterIngredients(searchText);
+    logger.d('Filters $filters');
+    logger.d('Categories $categories');
+    logger.d('Tags $tags');
   }
 
   GridView _buildGrid() {
@@ -586,19 +431,284 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Future<void> _pullRefresh() async {
-    _clearCache();
-    _loadIngredients();
-    _loadRecipes();
-    _loadAccounts();
+  void _filterIngredients(String query) {
+    setState(() {
+      filteredItems.clear();
+      filteredIngredients.clear();
+      filteredRecipes.clear();
+      filteredAccounts.clear();
+
+      if (query.isEmpty) return;
+
+      final lowerQuery = query.toLowerCase();
+
+      final allMatches = <Map<String, dynamic>>[];
+
+      if (filters[0].values.first) {
+        for (final ingredient in ingredients) {
+          if (ingredient.name.toLowerCase().contains(lowerQuery) &&
+              categories.any(
+                (category) =>
+                    category.keys.first == ingredient.category &&
+                    category.values.first,
+              )) {
+            final similarity = StringSimilarity.compareTwoStrings(
+              ingredient.name.toLowerCase(),
+              lowerQuery,
+            );
+            allMatches.add({'item': ingredient, 'similarity': similarity});
+          }
+        }
+      }
+
+      if (filters[1].values.first) {
+        for (final recipe in recipes) {
+          if ((recipe.name.toLowerCase().contains(lowerQuery) ||
+                  recipe.ingredients?.any(
+                        (ingredient) =>
+                            ingredient.name.toLowerCase().contains(lowerQuery),
+                      ) ==
+                      true) &&
+              tags.any(
+                (tagMap) =>
+                    tagMap.values.first == true &&
+                    recipe.tags!.any(
+                      (recipeTag) => recipeTag.name == tagMap.keys.first,
+                    ),
+              )) {
+            final similarity = StringSimilarity.compareTwoStrings(
+              recipe.name.toLowerCase(),
+              lowerQuery,
+            );
+            allMatches.add({'item': recipe, 'similarity': similarity});
+          }
+        }
+      }
+      if (filters[2].values.first) {
+        for (final account in accounts) {
+          if (account.login.toLowerCase().contains(lowerQuery)) {
+            final similarity = StringSimilarity.compareTwoStrings(
+              account.login.toLowerCase(),
+              lowerQuery,
+            );
+            allMatches.add({'item': account, 'similarity': similarity});
+          }
+        }
+      }
+
+      allMatches.sort(
+        (a, b) =>
+            (b['similarity'] as double).compareTo(a['similarity'] as double),
+      );
+
+      filteredItems.addAll(allMatches.map((e) => e['item']));
+
+      filteredIngredients.addAll(filteredItems.whereType<Ingredient>());
+      filteredRecipes.addAll(filteredItems.whereType<Recipe>());
+    });
   }
 
-  void _clearCache() {
+  Future<void> _loadIngredients() async {
+    final cached = await cache.load('ingredients', null);
+
+    if (cached != null && cached is List) {
+      logger.d('Loaded ingredients from cache');
+
+      final List<Ingredient> cachedIngredients =
+          cached
+              .map<Ingredient>(
+                (item) => Ingredient.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+
+      setState(() {
+        ingredients.addAll(cachedIngredients);
+      });
+    } else {
+      logger.d('Fetching ingredients from API');
+
+      final List<Ingredient> fetchedIngredients =
+          await ingredientRepository.fetchAllIngredients();
+
+      final List<Map<String, dynamic>> ingredientMaps =
+          fetchedIngredients.map((i) => i.toJson()).toList();
+
+      cache.remember('ingredients', ingredientMaps, 120);
+      cache.write('ingredients', ingredientMaps, 120);
+
+      setState(() {
+        ingredients.addAll(fetchedIngredients);
+      });
+    }
+  }
+
+  Future<void> _loadRecipes() async {
+    final cached = await cache.load('recipes', null);
+
+    if (cached != null && cached is List) {
+      logger.d('Loaded recipes from cache');
+
+      final List<Recipe> cachedRecipes =
+          cached
+              .map<Recipe>(
+                (item) => Recipe.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+
+      setState(() {
+        recipes.addAll(cachedRecipes);
+      });
+    } else {
+      logger.d('Fetching recipes from API');
+
+      final List<Recipe> fetchedRecipes =
+          await recipeRepository.getAllRecipes();
+
+      final List<Map<String, dynamic>> recipeMaps =
+          fetchedRecipes.map((i) => i.toJson()).toList();
+
+      cache.remember('recipes', recipeMaps, 120);
+      cache.write('recipes', recipeMaps, 120);
+
+      setState(() {
+        recipes.addAll(fetchedRecipes);
+      });
+    }
+  }
+
+  Future<void> _loadAccounts() async {
+    final cached = await cache.load('accounts', null);
+
+    if (cached != null && cached is List) {
+      logger.d('Loaded accounts from cache');
+
+      final List<Account> cachedAccounts =
+          cached
+              .map<Account>(
+                (item) => Account.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+
+      setState(() {
+        accounts.addAll(cachedAccounts);
+      });
+    } else {
+      logger.d('Fetching accounts from API');
+
+      final List<Account> fetchedAccounts =
+          await accountRepository.fetchAllUsers();
+
+      final List<Map<String, dynamic>> accountMaps =
+          fetchedAccounts.map((i) => i.toJson()).toList();
+
+      cache.remember('accounts', accountMaps, 120);
+      cache.write('accounts', accountMaps, 120);
+
+      setState(() {
+        accounts.addAll(fetchedAccounts);
+      });
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    final cached = await cache.load('categories', null);
+
+    if (cached != null && cached is List) {
+      logger.d('Loaded categories from cache');
+
+      final List<Category> cachedCategories =
+          cached
+              .map<Category>(
+                (item) => Category.fromMap(item as Map<String, dynamic>),
+              )
+              .toList();
+
+      setState(() {
+        categories.addAll(cachedCategories.map((tag) => {tag.name: true}));
+      });
+    } else {
+      logger.d('Fetching categories from API');
+
+      final List<Category> fetchedCategories =
+          await categoryRepository.getEveryCategory();
+
+      final List<Map<String, dynamic>> categoriesMaps =
+          fetchedCategories.map((i) => i.toMap()).toList();
+
+      cache.remember('categories', categoriesMaps, 86400);
+      cache.write('categories', categoriesMaps, 86400);
+
+      setState(() {
+        categories.addAll(fetchedCategories.map((tag) => {tag.name: true}));
+      });
+    }
+  }
+
+  Future<void> _loadTags() async {
+    final cached = await cache.load('tags', null);
+
+    if (cached != null && cached is List) {
+      logger.d('Loaded tags from cache');
+      final List<TagModel> cachedTags =
+          cached.map<TagModel>((item) => TagModel.fromMap(item)).toList();
+
+      setState(() {
+        tags.addAll(cachedTags.map((tag) => {tag.name: true}));
+      });
+    } else {
+      logger.d('Fetching tags from API');
+
+      final List<TagModel> fetchedTags = await tagRepository.getEveryTag();
+
+      final List<Map<String, dynamic>> tagMaps =
+          fetchedTags.map((i) => i.toMap()).toList();
+
+      cache.remember('tags', tagMaps, 86400);
+      cache.write('tags', tagMaps, 86400);
+
+      setState(() {
+        tags.addAll(fetchedTags.map((tag) => {tag.name: true}));
+      });
+    }
+  }
+
+  Future<void> _addToStash(int ingredientId, int quantity) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      await userStashRepository.addToStash(userId, ingredientId, quantity);
+    }
+  }
+
+  Future<void> _addToShoppingList(int ingredientId, int quantity) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      await shoppingListRepository.addToShoppingList(
+        userId,
+        ingredientId,
+        quantity,
+      );
+    }
+  }
+
+  Future<void> _pullRefresh() async {
+    await _clearCache();
+    await _loadIngredients();
+    await _loadRecipes();
+    await _loadAccounts();
+    await _loadTags();
+    await _loadCategories();
+  }
+
+  Future<void> _clearCache() async {
     ingredients.clear();
     cache.destroy('ingredients');
     recipes.clear();
     cache.destroy('recipes');
     accounts.clear();
     cache.destroy('accounts');
+    tags.clear();
+    cache.destroy('tags');
+    categories.clear();
+    cache.destroy('categories');
   }
 }
