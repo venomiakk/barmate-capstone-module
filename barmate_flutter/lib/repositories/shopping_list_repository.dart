@@ -48,4 +48,19 @@ class ShoppingListRepository {
       print('Błąd podczas usuwania listy zakupów: $e');
     }
   }
+
+  Future<void> addToShoppingList(var userId, int ingredientId, int quantity) async {
+    try {
+      final response = await client.rpc('add_to_shopping_list', params: {
+        'p_user_id': userId,
+        'p_ingredient_id': ingredientId,
+        'p_quantity': quantity,
+      });
+      if (response != null) {
+        print('Added to shopping list: $response');
+      }
+    } catch (e) {
+      print('Error adding to shopping list: $e');
+    }
+  }
 }

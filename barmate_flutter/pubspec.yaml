@@ -42,6 +42,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   shared_preferences: ^2.5.3
   logger: ^2.5.0
+  flutter_cache: ^0.1.0
 
 dev_dependencies:
   flutter_test:
