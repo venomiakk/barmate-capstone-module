@@ -31,12 +31,12 @@ flutter pub run build_runner build
 - [x] Aktualizacja stanu zapasów
 - [x] Śledzenie stanu zapasów
 - [x] Wyszukiwanie artykułów
-- [ ] Wyszukiwanie drinków
-- [ ] Filtrowanie wyników
+- [x] Wyszukiwanie drinków
+- [x] Filtrowanie wyników
 - [ ] Generowanie przepisu na podstawie zapasów
 - [ ] Skalowanie przepisów
 - [ ] Dodawanie przepisów
-- [ ] Dodawanie składników do listy zakupów
+- [x] Dodawanie składników do listy zakupów
 - [ ] Usuwanie składników z listy zakupów
 - [ ] Powiadomienia o niskim stanie zapasów
 - [ ] Ulubione drinki
