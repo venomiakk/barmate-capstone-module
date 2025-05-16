@@ -1,3 +1,6 @@
+import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:barmate/controllers/public_profile_controller.dart';
+import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_favorite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_user_info_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -15,12 +18,15 @@ class PublicUserProfileScreen extends StatefulWidget {
 
 class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
   var logger = Logger(printer: PrettyPrinter());
-
+  final PublicUserProfileController _controller =
+      PublicUserProfileController.create();
   // User data
   String username = '';
   String? userTitle;
   String? userBio;
   String? userAvatarUrl;
+  int? userId;
+  String userUuid = '';
   bool isFollowing = false;
 
   @override
@@ -30,28 +36,33 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    // TODO: Implement a controller to load user data by userId
-    // This is where you would fetch the user data from your backend
-    // For now, we'll use placeholder data
-
-    // Simulating a network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    setState(() {
-      username = "JohnDoe";
-      userTitle = "Cocktail Enthusiast";
-      userBio = "I love trying new cocktails.";
-      userAvatarUrl = null; // Replace with actual URL when available
-    });
+    try {
+      final userData = await _controller.getUserData(widget.userId);
+      // TODO: implement follow loading
+      setState(() {
+        username = userData.username;
+        userTitle = userData.title;
+        userBio = userData.bio;
+        userAvatarUrl = userData.avatarUrl;
+        userId = userData.id;
+        userUuid = userData.uuid;
+      });
+    } catch (e) {
+      logger.e("Error loading user data: $e");
+    }
   }
 
-  void _handleFollowTap() {
+  Future<void> _handleFollowTap() async {
     // TODO: Implement follow/unfollow functionality with your backend
     setState(() {
       isFollowing = !isFollowing;
     });
-
-    logger.d(isFollowing ? "Following user" : "Unfollowed user");
+    final prefs = await UserPreferences.getInstance();
+    final loggedinUserId = prefs.getUserId();
+    logger.f(
+      "TODO: User $loggedinUserId clicked follow/unfollow button on user $userId, $userUuid",
+    );
+    logger.i(isFollowing ? "Following user" : "Unfollowed user");
 
     // Show a snackbar to indicate the action
     ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +79,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    logger.i("Building PublicUserProfileScreen for userId: ${widget.userId}");
+    // logger.i("Building PublicUserProfileScreen for userId: ${widget.userId}");
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Profile"),
@@ -123,14 +134,12 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-
-            // TODO: Add favorite drinks list widget
-            const SizedBox(
-              height: 170,
-              child: Center(
-                child: Text("User's favorite drinks will appear here"),
-              ),
-            ),
+            userUuid.isNotEmpty
+                ? PublicFavouriteDrinksWidget(
+                  userId: widget.userId,
+                  userUuid: userUuid,
+                )
+                : const Center(child: CircularProgressIndicator()),
 
             const SizedBox(height: 24),
 
@@ -138,7 +147,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
             const Padding(
               padding: EdgeInsets.only(bottom: 8.0),
               child: Text(
-                'Recent Activity',
+                'Recent Activity/ User drinks??',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),

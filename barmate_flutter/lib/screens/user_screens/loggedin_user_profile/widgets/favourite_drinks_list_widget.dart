@@ -37,6 +37,7 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
             .map(
               (favDrink) => Drink(
                 id: favDrink.id,
+                recipeId: favDrink.recipeId,
                 name: favDrink.drinkName, // Use name with fallback
                 imageUrl:
                     'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/drinkpics//sample_drink.jpg', // Use imageUrl properly
@@ -107,7 +108,7 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
 
   void viewDrinkDetails(Drink drink) {
     // TODO: Navigate to drink details screen
-    logger.w('TODO: Navigate to drink details screen for ${drink.name}');
+    logger.w('TODO: Navigate to drink details screen for ${drink.recipeId}');
     // Example:
     // Navigator.push(
     //   context,

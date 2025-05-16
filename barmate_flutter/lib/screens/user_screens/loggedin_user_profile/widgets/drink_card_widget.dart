@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class Drink {
   final int id;
+  final int recipeId;
   final String name;
   final String imageUrl;
   final bool isFavorite;
 
   Drink({
     required this.id,
+    required this.recipeId,
     required this.name,
     required this.imageUrl,
     this.isFavorite = false,
