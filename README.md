@@ -45,7 +45,7 @@ flutter pub run build_runner build
 - [ ] Rejestracja przygotowanych drinków
 - [ ] Podsumowanie historii
 - [ ] Granie w minigry
-- [ ] Wyszukiwanie innych użytkowników
+- [x] Wyszukiwanie innych użytkowników
 - [ ] Dostosowywanie preferencji
 - [x] Personalizacja interfejsu
 - [x] Personalizacja profilu
