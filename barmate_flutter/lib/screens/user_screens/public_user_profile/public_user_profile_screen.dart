@@ -40,7 +40,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
     setState(() {
       username = "JohnDoe";
       userTitle = "Cocktail Enthusiast";
-      userBio = "I love trying new cocktails";
+      userBio = "I love trying new cocktails.";
       userAvatarUrl = null; // Replace with actual URL when available
     });
   }
