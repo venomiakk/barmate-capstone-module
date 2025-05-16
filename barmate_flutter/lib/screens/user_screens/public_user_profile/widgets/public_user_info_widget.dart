@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class PublicUserProfileWidget extends StatelessWidget {
   final String username;
@@ -31,7 +32,9 @@ class PublicUserProfileWidget extends StatelessWidget {
                 radius: 50,
                 backgroundImage:
                     userAvatarUrl != null
-                        ? NetworkImage(userAvatarUrl!)
+                        ? NetworkImage(
+                          '${constants.profilePicsUrl}/${userAvatarUrl!}',
+                        )
                         : const AssetImage('images/unavailable-image.jpg')
                             as ImageProvider,
               ),
