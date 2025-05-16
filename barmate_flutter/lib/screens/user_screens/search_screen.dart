@@ -6,6 +6,7 @@ import 'package:barmate/repositories/category_repository.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
 import 'package:barmate/repositories/account_repository.dart';
 import 'package:barmate/repositories/tag_repository.dart';
+import 'package:barmate/screens/user_screens/public_user_profile/public_user_profile_screen.dart';
 import 'package:barmate/screens/user_screens/search_filter_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -213,7 +214,7 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: SearchBar(
               hintText: 'Search',
-              onChanged: (query){
+              onChanged: (query) {
                 setState(() {
                   searchText = query;
                 });
@@ -416,17 +417,30 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   _buildUserCard(Account account) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          _buildCardImage("images/user-picture.png"),
-          const SizedBox(width: 16),
-          _buildCardInfo(account),
-          // const SizedBox(width: 8),
-          // _buildUserActions(account),
-        ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    PublicUserProfileScreen(userId: account.id.toString()),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            _buildCardImage("images/user-picture.png"),
+            const SizedBox(width: 16),
+            _buildCardInfo(account),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward_ios, size: 16),
+            const SizedBox(width: 8),
+          ],
+        ),
       ),
     );
   }
