@@ -33,6 +33,7 @@ flutter pub run build_runner build
 - [x] Wyszukiwanie artykułów
 - [x] Wyszukiwanie drinków
 - [x] Filtrowanie wyników
+- [ ] Tablica powiadomień
 - [ ] Generowanie przepisu na podstawie zapasów
 - [ ] Skalowanie przepisów
 - [ ] Dodawanie przepisów
