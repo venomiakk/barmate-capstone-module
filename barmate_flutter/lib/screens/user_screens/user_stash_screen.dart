@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/stash_repository.dart';
+import 'package:barmate/screens/user_screens/ingredient_screen.dart';
+
 
 class UserStashScreen extends StatefulWidget {
   const UserStashScreen({super.key});
@@ -424,7 +426,18 @@ class _UserStashScreenState extends State<UserStashScreen> {
     final index = stash.indexWhere((e) => e.ingredientId == entry.ingredientId);
 
     return GestureDetector(
-      onTap: isDeleteMode ? () => _toggleSelection(entry.ingredientId) : null,
+      onTap: () {
+        if (isDeleteMode) {
+          _toggleSelection(entry.ingredientId);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => IngredientScreen(ingredient: entry),
+            ),
+          );
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
