@@ -1,5 +1,6 @@
 import 'package:barmate/data/notifiers.dart';
 import 'package:barmate/screens/admin_screens/admin_widget_tree.dart';
+import 'package:barmate/screens/moderator_screens/moderator_widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -31,7 +32,9 @@ class AuthGate extends StatelessWidget {
         await prefs.setUserName('admin');
         return const AdminWidgetTree();
       }
-
+      if (userRole == 'moderator') {
+        return const ModeratorWidgetTree();
+      }
       if (userName == null || userName.isEmpty) {
         return const SetLoginScreen();
       } else {

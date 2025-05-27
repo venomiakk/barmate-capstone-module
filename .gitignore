@@ -24,3 +24,7 @@ hs_err_pid*
 replay_pid*
 
 .idea
+/barmate_flutter/windows/flutter
+/barmate_flutter/windows
+/barmate_flutter/macos
+/barmate_flutter/linux

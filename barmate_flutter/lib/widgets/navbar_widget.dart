@@ -1,4 +1,3 @@
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/data/notifiers.dart';
 
@@ -10,21 +9,35 @@ class NavbarWidget extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: selectedPageNotifier,
       builder: (context, selectedPage, child) {
-        return CurvedNavigationBar(
-          index: selectedPage,
-          items: const <Widget>[
-            Icon(Icons.home, size: 30),
-            Icon(Icons.search, size: 30),
-            Icon(Icons.shopping_cart, size: 30), // Ikona dla Shopping List
-            Icon(Icons.shopping_bag, size: 30),
-            Icon(Icons.person, size: 30),
-          ],
-          onTap: (value) {
-            selectedPageNotifier.value = value;
-          },
-          color: Theme.of(context).colorScheme.primary,
+        return BottomNavigationBar(
+          currentIndex: selectedPage,
+          onTap: (value) => selectedPageNotifier.value = value,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Colors.grey,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          animationCurve: Curves.linearToEaseOut,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+              label: 'Search',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart),
+              label: 'Shopping List',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory),
+              label: 'Stash',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
         );
       },
     );

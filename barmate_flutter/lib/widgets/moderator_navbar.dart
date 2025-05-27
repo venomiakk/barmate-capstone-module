@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:barmate/data/notifiers.dart';
 
-class AdminNavbar extends StatelessWidget {
-  const AdminNavbar({super.key});
+class ModeratorNavbar extends StatelessWidget {
+  const ModeratorNavbar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,17 +17,14 @@ class AdminNavbar extends StatelessWidget {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.article),
-              label: 'Articles',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assessment),
+              icon: Icon(Icons.check_circle_outline),
               label: 'Reports',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.collections_bookmark),
+              icon: Icon(Icons.assessment),
               label: 'Collections',
             ),
+           
           ],
         );
       },
