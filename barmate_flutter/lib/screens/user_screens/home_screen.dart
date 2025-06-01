@@ -4,6 +4,7 @@ import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/collection_repository.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -166,21 +167,31 @@ Widget popularRecipes() {
                 itemCount: recipes.length,
                 itemBuilder: (context, index) {
                   final recipe = recipes[index];
-                  return Card(
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Container(
-                      width: 150,
-                      decoration: BoxDecoration(
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeScreen(recipe: recipe),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: Center(
-                        child: Text(
-                          recipe.name,
-                          style: TextStyle(
-                            fontSize: 16,
+                      child: Container(
+                        width: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: Text(
+                            recipe.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ),

@@ -27,4 +27,17 @@ Future<List<Ingredient>> fetchAllIngredients() async {
   }
   return [];
   }
+
+  Future<List<Map<String, dynamic>>?> fetchIngriedientByRecipeId(int recipeId) async {
+    try {
+      final response = await client.rpc('get_ingredients_by_recipeId', params: {'p_recipe_id': recipeId});
+      if (response != null) {
+        print(response);
+        return (response as List).map((e) => e as Map<String, dynamic>).toList();
+      }
+    } catch (e) {
+      print('Error fetching ingredient: $e');
+    }
+    return null;
+  }
 }
