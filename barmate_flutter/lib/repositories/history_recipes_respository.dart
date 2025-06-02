@@ -1,38 +1,18 @@
-import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class FavouriteDrinkRepository {
+class DrinkHistoryRepository {
   final SupabaseClient client = Supabase.instance.client;
 
   // Funkcja do pobierania ulubionych drinków użytkownika na podstawie jego userId
-Future<List<FavouriteDrink>> fetchFavouriteDrinksByUserId(String userId) async {
-  try {
-    final result = await client.rpc(
-      'get_favourite_drinks_by_user_id',
-      params: {'user_id': userId},
-    );
 
-    if (result == null) {
-      throw Exception('No data returned from RPC');
-    }
 
-    final List<dynamic> data = result as List<dynamic>;
-    return data
-        .map((item) => FavouriteDrink.fromJson(item as Map<String, dynamic>))
-        .toList();
-  } catch (e) {
-    print('Error fetching favourite drinks: $e');
-    rethrow;
-  }
-}
-
-Future<int> addFavouriteDrink(
+Future<int> addRecipesToHistory(
   String userId,
   int recipeId,
 ) async {
   try {
     final response = await client.rpc(
-      'add_to_fav',
+      'add_to_history_recipes',
       params: {
         'p_user_id': userId,
         'p_recipe_id': recipeId,
@@ -49,13 +29,13 @@ Future<int> addFavouriteDrink(
     rethrow;
   }
 }
-Future<bool> checkIfFavouriteDrinkExists(
+Future<bool> checkIfHisotryRecipesExists(
   String userId,
   int recipeId,
 ) async {
   try {
     final response = await client.rpc(
-      'ckeck_fav_recipes',
+      'check_history_recipes',
       params: {
         'p_user_id': userId,
         'p_recipe_id': recipeId,
@@ -73,13 +53,13 @@ Future<bool> checkIfFavouriteDrinkExists(
   }
 }
 
-Future<int> removeFavouriteDrink(
+Future<int> removeRecipeFromHistory(
   String userId,
   int recipeId,
 ) async {
   try {
     final response = await client.rpc(
-      'remove_from_fav_by_ids',
+      'remove_from_history_by_ids',
       params: {
         'p_user_id': userId,
         'p_recipe_id': recipeId,
@@ -92,7 +72,7 @@ Future<int> removeFavouriteDrink(
 
     return response as int;
   } catch (e) {
-    print('Error removing favourite drink: $e');
+    print('Error removing recipe from history: $e');
     rethrow;
   }
 }

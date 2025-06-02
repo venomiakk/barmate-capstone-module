@@ -1,6 +1,8 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/repositories/favourite_drinks_repository.dart';
+import 'package:barmate/repositories/history_recipes_respository.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,9 @@ class RecipeScreen extends StatefulWidget {
 }
 
 class _RecipeScreenState extends State<RecipeScreen> {
+  final FavouriteDrinkRepository _favouriteDrinkRepository =
+      FavouriteDrinkRepository();
+  final DrinkHistoryRepository _historyRepository = DrinkHistoryRepository();
   final IngredientRepository _ingredientRepository = IngredientRepository();
   final RecipeRepository _recipeRepository = RecipeRepository();
   List<RecipeIngredientDisplay> _ingredients = [];
@@ -24,6 +29,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _loadingSteps = true;
   bool _loadingComments = true;
   String userId = '';
+  bool _isFavourite = false;
+  bool _isInHistory = false;
+  bool _checkingStatus = true;
 
   @override
   void initState() {
@@ -32,13 +40,27 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _fetchIngredients();
     _fetchSteps();
     _fetchComments();
+    _checkFavouriteAndHistory();
   }
 
   Future<void> _initializePrefs() async {
     final prefs = await UserPreferences.getInstance();
     userId = prefs.getUserId();
     setState(() {});
+    _checkFavouriteAndHistory();
   }
+
+  Future<void> _checkFavouriteAndHistory() async {
+  if (widget._recipe != null && userId.isNotEmpty) {
+    final fav = await _favouriteDrinkRepository.checkIfFavouriteDrinkExists(userId, widget._recipe!.id);
+    final hist = await _historyRepository.checkIfHisotryRecipesExists(userId, widget._recipe!.id);
+    setState(() {
+      _isFavourite = fav;
+      _isInHistory = hist;
+      _checkingStatus = false;
+    });
+  }
+}
 
   Future<void> _fetchIngredients() async {
     if (widget._recipe != null) {
@@ -168,6 +190,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   SliverAppBar(
                     expandedHeight: 400.0,
                     pinned: true,
+
                     flexibleSpace: FlexibleSpaceBar(
                       background: ClipRRect(
                         borderRadius: const BorderRadius.only(
@@ -226,23 +249,91 @@ class _RecipeScreenState extends State<RecipeScreen> {
             child: Container(
               alignment: Alignment.topCenter,
               padding: const EdgeInsets.only(top: 12),
-              child: Text(
-                widget._recipe?.name ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 8,
-                      color: Colors.black54,
-                      offset: Offset(0, 2),
+              child: SizedBox(
+                height: 48, // wysokość nagłówka, możesz dostosować
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Wyśrodkowany napis
+                    Center(
+                      child: Text(
+                        widget._recipe?.name ?? '',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 8,
+                              color: Colors.black54,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    // Ikony po prawej
+                    Positioned(
+                      right: 0,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _isFavourite ? Icons.favorite : Icons.favorite_border,
+                              color: Colors.black,
+                            ),
+                            tooltip: _isFavourite ? 'Remove from favorites' : 'Add to favorites',
+                            onPressed: _checkingStatus
+                                ? null
+                                : () async {
+                                    if (_isFavourite) {
+                                      await _favouriteDrinkRepository.removeFavouriteDrink(userId, widget._recipe!.id);
+                                      setState(() => _isFavourite = false);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Removed from favorites!')),
+                                      );
+                                    } else {
+                                      await _favouriteDrinkRepository.addFavouriteDrink(userId, widget._recipe!.id);
+                                      setState(() => _isFavourite = true);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Added to favorites!')),
+                                      );
+                                    }
+                                  },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              _isInHistory ? Icons.local_bar : Icons.local_bar_outlined,
+                              color: Colors.black,
+                            ),
+                            tooltip: _isInHistory ? 'Remove from history' : 'Mark as drunk',
+                            onPressed: _checkingStatus
+                                ? null
+                                : () async {
+                                    if (_isInHistory) {
+                                      await _historyRepository.removeRecipeFromHistory(userId, widget._recipe!.id);
+                                      setState(() => _isInHistory = false);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Removed from history!')),
+                                      );
+                                    } else {
+                                      await _historyRepository.addRecipesToHistory(userId, widget._recipe!.id);
+                                      setState(() => _isInHistory = true);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Marked as drunk!')),
+                                      );
+                                    }
+                                  },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -259,36 +350,37 @@ class _RecipeScreenState extends State<RecipeScreen> {
           showDialog(
             context: context,
             barrierDismissible: true,
-            builder: (context) => Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 24,
-                          offset: Offset(0, 8),
+            builder:
+                (context) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 24,
+                              offset: Offset(0, 8),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: buildAddCommentForm(
-                      recipeId: widget._recipe!.id,
-                      userId: userId,
-                      onSubmit: _recipeRepository.addCommentToRecipe,
-                      closeModal: () => Navigator.of(context).pop(),
+                        child: buildAddCommentForm(
+                          recipeId: widget._recipe!.id,
+                          userId: userId,
+                          onSubmit: _recipeRepository.addCommentToRecipe,
+                          closeModal: () => Navigator.of(context).pop(),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
           );
         },
         label: const Text('Add comment'),
@@ -408,7 +500,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
       int p_rating,
       String p_comment,
       String p_user_id,
-    ) onSubmit,
+    )
+    onSubmit,
     VoidCallback? closeModal,
   }) {
     final _formKey = GlobalKey<FormState>();
@@ -442,20 +535,27 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 controller: _commentController,
                 decoration: const InputDecoration(
                   labelText: 'Comment',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
                   filled: true,
                   fillColor: Color(0xFFF7F7F7),
                 ),
                 maxLines: 3,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter a comment' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Enter a comment'
+                            : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _photoUrlController,
                 decoration: const InputDecoration(
                   labelText: 'Photo URL (optional)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
                   filled: true,
                   fillColor: Color(0xFFF7F7F7),
                 ),
@@ -476,7 +576,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () async {
@@ -507,7 +609,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
                       setState(() => _rating = 5);
                       if (closeModal != null) closeModal();
                     }
-                    
                   },
                   child: const Text('Submit'),
                 ),
@@ -541,17 +642,25 @@ class _RecipeScreenState extends State<RecipeScreen> {
           'Comments:',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        ..._comments.map((c) => Card(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          child: ListTile(
-            leading: StarRating(rating: c.rating, size: 20),
-            title: Text(c.userName),
-            subtitle: Text(c.comment),
-            trailing: c.photoUrl != null && c.photoUrl!.isNotEmpty
-                ? Image.network(c.photoUrl!, width: 40, height: 40, fit: BoxFit.cover)
-                : null,
+        ..._comments.map(
+          (c) => Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            child: ListTile(
+              leading: StarRating(rating: c.rating, size: 20),
+              title: Text(c.userName),
+              subtitle: Text(c.comment),
+              trailing:
+                  c.photoUrl != null && c.photoUrl!.isNotEmpty
+                      ? Image.network(
+                        c.photoUrl!,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      )
+                      : null,
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -581,7 +690,10 @@ class StarRating extends StatelessWidget {
       children: List.generate(maxRating, (index) {
         final isFilled = index < rating;
         return GestureDetector(
-          onTap: onRatingChanged != null ? () => onRatingChanged!(index + 1) : null,
+          onTap:
+              onRatingChanged != null
+                  ? () => onRatingChanged!(index + 1)
+                  : null,
           child: Icon(
             isFilled ? Icons.star : Icons.star_border,
             color: color,
@@ -623,4 +735,3 @@ class RecipeComment {
 }
 
 // Przykładowa lista komentarzy (zastąp pobieraniem z repozytorium)
-
