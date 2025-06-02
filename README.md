@@ -38,7 +38,7 @@ flutter pub run build_runner build
 - [ ] Skalowanie przepisów
 - [ ] Dodawanie przepisów
 - [x] Dodawanie składników do listy zakupów
-- [ ] Usuwanie składników z listy zakupów
+- [x] Usuwanie składników z listy zakupów
 - [ ] Powiadomienia o niskim stanie zapasów
 - [x] Ulubione drinki **(są w profilu)**
 - [ ] Komentowanie przepisów
