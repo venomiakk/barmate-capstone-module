@@ -1,11 +1,12 @@
+import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:flutter/material.dart';
 
 class RecipeScreen extends StatefulWidget {
   final Recipe? _recipe;
-  final ingredients = new List<Ingredient>.empty(growable: true);
 
   RecipeScreen({super.key, Recipe? recipe}) : _recipe = recipe;
 
@@ -15,19 +16,36 @@ class RecipeScreen extends StatefulWidget {
 
 class _RecipeScreenState extends State<RecipeScreen> {
   final IngredientRepository _ingredientRepository = IngredientRepository();
+  final RecipeRepository _recipeRepository = RecipeRepository();
   List<RecipeIngredientDisplay> _ingredients = [];
+  List<RecipeComment> _comments = [];
+  List<RecipeSteps> _steps = [];
   bool _loadingIngredients = true;
+  bool _loadingSteps = true;
+  bool _loadingComments = true;
+  String userId = '';
 
   @override
   void initState() {
     super.initState();
+    _initializePrefs();
     _fetchIngredients();
+    _fetchSteps();
+    _fetchComments();
+  }
+
+  Future<void> _initializePrefs() async {
+    final prefs = await UserPreferences.getInstance();
+    userId = prefs.getUserId();
+    setState(() {});
   }
 
   Future<void> _fetchIngredients() async {
     if (widget._recipe != null) {
       try {
-        final response = await _ingredientRepository.fetchIngriedientByRecipeId(widget._recipe!.id);
+        final response = await _ingredientRepository.fetchIngriedientByRecipeId(
+          widget._recipe!.id,
+        );
         final List<RecipeIngredientDisplay> loaded = [];
         if (response != null) {
           for (final json in response) {
@@ -38,7 +56,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   name: json['name'] ?? '',
                   description: json['decription'], // typo matches your function
                   photo_url: json['photo_url'],
-                  unit: null,
+                  unit: json['unit'],
                   category: null,
                 ),
                 amount: json['amont']?.toString(), // typo matches your function
@@ -64,6 +82,80 @@ class _RecipeScreenState extends State<RecipeScreen> {
     }
   }
 
+  Future<void> _fetchSteps() async {
+    if (widget._recipe != null) {
+      try {
+        final response = await _recipeRepository.fetchRecipeStepsByRecipeId(
+          widget._recipe!.id,
+        );
+        final List<RecipeSteps> loaded = [];
+        if (response != null) {
+          for (final json in response) {
+            loaded.add(
+              RecipeSteps(
+                description: json['description'],
+                order: json['order'],
+              ),
+            );
+          }
+        }
+        setState(() {
+          _steps = loaded;
+          _loadingSteps = false;
+        });
+      } catch (e) {
+        setState(() {
+          _ingredients = [];
+          _loadingSteps = false;
+        });
+      }
+    } else {
+      setState(() {
+        _ingredients = [];
+        _loadingSteps = false;
+      });
+    }
+  }
+
+  Future<void> _fetchComments() async {
+    if (widget._recipe != null) {
+      try {
+        final response = await _recipeRepository.fetchCommentsByRecipeId(
+          widget._recipe!.id,
+        );
+        final List<RecipeComment> loaded = [];
+        if (response != null) {
+          print('Response: $response');
+          for (final json in response) {
+            loaded.add(
+              RecipeComment(
+                userName: json['login'],
+                rating: json['rating'],
+                comment: json['comment'],
+                photoUrl: json['photo_url'],
+              ),
+            );
+          }
+        }
+        setState(() {
+          _comments = loaded;
+          _loadingComments = false;
+          print(_comments);
+        });
+      } catch (e) {
+        setState(() {
+          _comments = [];
+          _loadingComments = false;
+        });
+      }
+    } else {
+      setState(() {
+        _comments = [];
+        _loadingComments = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,51 +164,63 @@ class _RecipeScreenState extends State<RecipeScreen> {
           // Cała zawartość scrollowana
           widget._recipe != null
               ? CustomScrollView(
-                  slivers: [
-                    SliverAppBar(
-                      expandedHeight: 400.0,
-                      pinned: true,
-                      flexibleSpace: FlexibleSpaceBar(
-                        background: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(32),
-                            bottomRight: Radius.circular(32),
-                          ),
-                          child: widget._recipe!.photoUrl != null
-                              ? Image.network(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 400.0,
+                    pinned: true,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                        child:
+                            widget._recipe!.photoUrl != null
+                                ? Image.network(
                                   widget._recipe!.photoUrl!,
                                   fit: BoxFit.cover,
                                 )
-                              : Image.asset(
+                                : Image.asset(
                                   'images/default_recipe_image.jpg',
                                   fit: BoxFit.cover,
                                 ),
-                        ),
-                        title: null,
-                        centerTitle: true,
                       ),
+                      title: null,
+                      centerTitle: true,
                     ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 16),
-                            const Text(
-                              'Description:',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 16),
+                          const Text(
+                            'Description:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
-                            buildDescription(widget._recipe!.description),
-                            SizedBox(height: 16),
-                            const Text('Ingredients:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                            ...buildIngredientCards(),
-                          ],
-                        ),
+                          ),
+                          buildDescription(widget._recipe!.description),
+                          SizedBox(height: 16),
+                          const Text(
+                            'Ingredients:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          ...buildIngredientCards(),
+                          buildStepsList(),
+                          buildCommentsList(),
+                        ],
                       ),
                     ),
-                  ],
-                )
+                  ),
+                ],
+              )
               : Center(child: Text('Recipe not found')),
           SafeArea(
             child: Container(
@@ -144,6 +248,52 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          if (userId.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User not logged in!')),
+            );
+            return;
+          }
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: buildAddCommentForm(
+                      recipeId: widget._recipe!.id,
+                      userId: userId,
+                      onSubmit: _recipeRepository.addCommentToRecipe,
+                      closeModal: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        label: const Text('Add comment'),
+        icon: const Icon(Icons.add_comment),
+      ),
     );
   }
 
@@ -153,26 +303,41 @@ class _RecipeScreenState extends State<RecipeScreen> {
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 16),
           child: Center(child: CircularProgressIndicator()),
-        )
+        ),
       ];
     } else if (_ingredients.isEmpty) {
-      return [
-        const Text('No ingredients found.')
-      ];
+      return [const Text('No ingredients found.')];
     } else {
-      return _ingredients.map((ri) => Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        child: ListTile(
-          leading: ri.ingredient.photo_url != null
-              ? Image.network(ri.ingredient.photo_url!, width: 40, height: 40, fit: BoxFit.cover)
-              : null,
-          title: Text(ri.ingredient.name),
-          subtitle: Text(ri.ingredient.description ?? ''),
-          trailing: ri.amount != null
-              ? Text(ri.amount!)
-              : null,
-        ),
-      )).toList();
+      return _ingredients
+          .map(
+            (ri) => Card(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              child: ListTile(
+                leading:
+                    ri.ingredient.photo_url != null
+                        ? Image.network(
+                          ri.ingredient.photo_url!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        )
+                        : null,
+                title: Text(ri.ingredient.name),
+                subtitle: Text(ri.ingredient.description ?? ''),
+                trailing:
+                    ri.amount != null
+                        ? Text(
+                          ri.ingredient.unit != null &&
+                                  ri.ingredient.unit!.isNotEmpty
+                              ? '${ri.amount!} ${ri.ingredient.unit!}'
+                              : ri.amount!,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        )
+                        : null,
+              ),
+            ),
+          )
+          .toList();
     }
   }
 
@@ -199,6 +364,233 @@ class _RecipeScreenState extends State<RecipeScreen> {
       ),
     );
   }
+
+  Widget buildStepsList() {
+    if (_loadingSteps) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (_steps.isEmpty) {
+      return const Text('No steps found.');
+    } else {
+      // Sortowanie po kolejności jeśli potrzebne
+      final sortedSteps = List<RecipeSteps>.from(_steps)
+        ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'Steps:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          ...sortedSteps.map(
+            (step) => Card(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              child: ListTile(
+                leading: CircleAvatar(child: Text('${step.order ?? ''}')),
+                title: Text(step.description ?? ''),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget buildAddCommentForm({
+    required int recipeId,
+    required String userId,
+    required Future<void> Function(
+      int p_recipe_id,
+      String p_photo_url,
+      int p_rating,
+      String p_comment,
+      String p_user_id,
+    ) onSubmit,
+    VoidCallback? closeModal,
+  }) {
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController _commentController = TextEditingController();
+    final TextEditingController _photoUrlController = TextEditingController();
+    int _rating = 5;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Add your comment',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: closeModal ?? () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _commentController,
+                decoration: const InputDecoration(
+                  labelText: 'Comment',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+                  filled: true,
+                  fillColor: Color(0xFFF7F7F7),
+                ),
+                maxLines: 3,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter a comment' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _photoUrlController,
+                decoration: const InputDecoration(
+                  labelText: 'Photo URL (optional)',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+                  filled: true,
+                  fillColor: Color(0xFFF7F7F7),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text('Rating:'),
+                  const SizedBox(width: 8),
+                  StarRating(
+                    rating: _rating,
+                    onRatingChanged: (value) => setState(() => _rating = value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () async {
+                    print('recipeId: $recipeId');
+                    print('photoUrl: ${_photoUrlController.text}');
+                    print('rating: $_rating');
+                    print('comment: ${_commentController.text}');
+                    print('userId: $userId');
+                    if (_formKey.currentState!.validate()) {
+                      if (userId == null || userId.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('User not logged in!')),
+                        );
+                        return;
+                      }
+                      await onSubmit(
+                        recipeId,
+                        _photoUrlController.text,
+                        _rating,
+                        _commentController.text,
+                        userId,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Comment added!')),
+                      );
+                      _commentController.clear();
+                      _photoUrlController.clear();
+                      setState(() => _rating = 5);
+                      if (closeModal != null) closeModal();
+                    }
+                    
+                  },
+                  child: const Text('Submit'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget buildCommentsList() {
+    print('_comments: $_comments');
+    if (_loadingComments) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_comments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text('No comments yet.'),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Text(
+          'Comments:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        ..._comments.map((c) => Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ListTile(
+            leading: StarRating(rating: c.rating, size: 20),
+            title: Text(c.userName),
+            subtitle: Text(c.comment),
+            trailing: c.photoUrl != null && c.photoUrl!.isNotEmpty
+                ? Image.network(c.photoUrl!, width: 40, height: 40, fit: BoxFit.cover)
+                : null,
+          ),
+        )),
+      ],
+    );
+  }
+}
+
+// Widget do wyboru gwiazdek
+class StarRating extends StatelessWidget {
+  final int rating;
+  final int maxRating;
+  final void Function(int)? onRatingChanged;
+  final double size;
+  final Color color;
+
+  const StarRating({
+    super.key,
+    required this.rating,
+    this.maxRating = 5,
+    this.onRatingChanged,
+    this.size = 28,
+    this.color = Colors.amber,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(maxRating, (index) {
+        final isFilled = index < rating;
+        return GestureDetector(
+          onTap: onRatingChanged != null ? () => onRatingChanged!(index + 1) : null,
+          child: Icon(
+            isFilled ? Icons.star : Icons.star_border,
+            color: color,
+            size: size,
+          ),
+        );
+      }),
+    );
+  }
 }
 
 class RecipeIngredientDisplay {
@@ -207,3 +599,28 @@ class RecipeIngredientDisplay {
 
   RecipeIngredientDisplay({required this.ingredient, this.amount});
 }
+
+class RecipeSteps {
+  final String? description;
+  final int? order;
+
+  RecipeSteps({required this.description, this.order});
+}
+
+// Dodaj model komentarza
+class RecipeComment {
+  final String userName;
+  final String comment;
+  final int rating;
+  final String? photoUrl;
+
+  RecipeComment({
+    required this.userName,
+    required this.comment,
+    required this.rating,
+    this.photoUrl,
+  });
+}
+
+// Przykładowa lista komentarzy (zastąp pobieraniem z repozytorium)
+
