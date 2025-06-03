@@ -1,6 +1,5 @@
 import 'package:barmate/model/public_profile_model.dart';
 import 'package:barmate/repositories/public_profile_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class PublicUserProfileController {

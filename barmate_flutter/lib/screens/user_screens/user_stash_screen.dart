@@ -93,8 +93,8 @@ class _UserStashScreenState extends State<UserStashScreen> {
                       searchQuery = value.toLowerCase();
                     });
                   },
-                  elevation: const MaterialStatePropertyAll(2),
-                  shape: MaterialStatePropertyAll(
+                  elevation: const WidgetStatePropertyAll(2),
+                  shape: WidgetStatePropertyAll(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -255,8 +255,8 @@ class _UserStashScreenState extends State<UserStashScreen> {
                                   searchQuery = value.toLowerCase();
                                 });
                               },
-                              elevation: const MaterialStatePropertyAll(2),
-                              shape: MaterialStatePropertyAll(
+                              elevation: const WidgetStatePropertyAll(2),
+                              shape: WidgetStatePropertyAll(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:barmate/model/title_model.dart';
 import 'package:barmate/repositories/edit_profile_repository.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 
 class EditProfileController {

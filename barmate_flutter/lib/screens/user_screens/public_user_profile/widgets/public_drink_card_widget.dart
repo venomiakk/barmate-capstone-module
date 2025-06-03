@@ -19,10 +19,10 @@ class PublicDrinkCardWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   const PublicDrinkCardWidget({
-    Key? key,
+    super.key,
     required this.drink,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

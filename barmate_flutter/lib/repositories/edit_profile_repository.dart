@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:barmate/constants.dart' as constants;
 import 'package:barmate/model/title_model.dart';
-import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

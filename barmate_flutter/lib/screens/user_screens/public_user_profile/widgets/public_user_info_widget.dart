@@ -10,14 +10,14 @@ class PublicUserProfileWidget extends StatelessWidget {
   final bool isFollowing;
 
   const PublicUserProfileWidget({
-    Key? key,
+    super.key,
     required this.username,
     this.userTitle,
     this.userBio,
     this.userAvatarUrl,
     required this.onFollowTap,
     this.isFollowing = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

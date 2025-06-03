@@ -8,10 +8,10 @@ class PublicFavouriteDrinksWidget extends StatefulWidget {
   final String userUuid;
 
   const PublicFavouriteDrinksWidget({
-    Key? key,
+    super.key,
     required this.userId,
     required this.userUuid,
-  }) : super(key: key);
+  });
 
   @override
   State<PublicFavouriteDrinksWidget> createState() =>

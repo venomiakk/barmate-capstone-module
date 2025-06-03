@@ -2,7 +2,6 @@ import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/data/notifiers.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
-import 'package:barmate/repositories/favourite_drinks_repository.dart';
 import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';

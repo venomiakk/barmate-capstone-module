@@ -1,10 +1,12 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/favourite_drinks_repository.dart';
 import 'package:barmate/repositories/history_recipes_respository.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
+import 'package:barmate/repositories/stash_repository.dart';
 import 'package:flutter/material.dart';
 
 class RecipeScreen extends StatefulWidget {
@@ -22,9 +24,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
   final DrinkHistoryRepository _historyRepository = DrinkHistoryRepository();
   final IngredientRepository _ingredientRepository = IngredientRepository();
   final RecipeRepository _recipeRepository = RecipeRepository();
+  final UserStashRepository _userStashRepository = UserStashRepository();
   List<RecipeIngredientDisplay> _ingredients = [];
   List<RecipeComment> _comments = [];
   List<RecipeSteps> _steps = [];
+  List<UserStash> _userStash = [];
   bool _loadingIngredients = true;
   bool _loadingSteps = true;
   bool _loadingComments = true;
@@ -51,16 +55,57 @@ class _RecipeScreenState extends State<RecipeScreen> {
   }
 
   Future<void> _checkFavouriteAndHistory() async {
-  if (widget._recipe != null && userId.isNotEmpty) {
-    final fav = await _favouriteDrinkRepository.checkIfFavouriteDrinkExists(userId, widget._recipe!.id);
-    final hist = await _historyRepository.checkIfHisotryRecipesExists(userId, widget._recipe!.id);
-    setState(() {
-      _isFavourite = fav;
-      _isInHistory = hist;
-      _checkingStatus = false;
-    });
+    if (widget._recipe != null && userId.isNotEmpty) {
+      final fav = await _favouriteDrinkRepository.checkIfFavouriteDrinkExists(
+        userId,
+        widget._recipe!.id,
+      );
+      final hist = await _historyRepository.checkIfHisotryRecipesExists(
+        userId,
+        widget._recipe!.id,
+      );
+      setState(() {
+        _isFavourite = fav;
+        _isInHistory = hist;
+        _checkingStatus = false;
+      });
+    }
   }
-}
+
+  Future<void> _fetchUserStash() async {
+    if (widget._recipe != null) {
+      try {
+        final response = await _userStashRepository.fetchUserStash(userId);
+        final List<UserStash> loaded = [];
+        if (response != null) {
+          for (final json in response) {
+            loaded.add(
+              UserStash(
+                ingredientId: json['ingredient_id'],
+                ingredientName: json['ingredient_name'],
+                amount: json['amount'],
+                categoryName:json['category_name']
+              ),
+            );
+          }
+        }
+        setState(() {
+          _ingredients = loaded;
+          _loadingIngredients = false;
+        });
+      } catch (e) {
+        setState(() {
+          _ingredients = [];
+          _loadingIngredients = false;
+        });
+      }
+    } else {
+      setState(() {
+        _ingredients = [];
+        _loadingIngredients = false;
+      });
+    }
+  }
 
   Future<void> _fetchIngredients() async {
     if (widget._recipe != null) {
@@ -283,51 +328,101 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         children: [
                           IconButton(
                             icon: Icon(
-                              _isFavourite ? Icons.favorite : Icons.favorite_border,
+                              _isFavourite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               color: Colors.black,
                             ),
-                            tooltip: _isFavourite ? 'Remove from favorites' : 'Add to favorites',
-                            onPressed: _checkingStatus
-                                ? null
-                                : () async {
-                                    if (_isFavourite) {
-                                      await _favouriteDrinkRepository.removeFavouriteDrink(userId, widget._recipe!.id);
-                                      setState(() => _isFavourite = false);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Removed from favorites!')),
-                                      );
-                                    } else {
-                                      await _favouriteDrinkRepository.addFavouriteDrink(userId, widget._recipe!.id);
-                                      setState(() => _isFavourite = true);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Added to favorites!')),
-                                      );
-                                    }
-                                  },
+                            tooltip:
+                                _isFavourite
+                                    ? 'Remove from favorites'
+                                    : 'Add to favorites',
+                            onPressed:
+                                _checkingStatus
+                                    ? null
+                                    : () async {
+                                      if (_isFavourite) {
+                                        await _favouriteDrinkRepository
+                                            .removeFavouriteDrink(
+                                              userId,
+                                              widget._recipe!.id,
+                                            );
+                                        setState(() => _isFavourite = false);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Removed from favorites!',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        await _favouriteDrinkRepository
+                                            .addFavouriteDrink(
+                                              userId,
+                                              widget._recipe!.id,
+                                            );
+                                        setState(() => _isFavourite = true);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Added to favorites!',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
                           ),
                           IconButton(
                             icon: Icon(
-                              _isInHistory ? Icons.local_bar : Icons.local_bar_outlined,
+                              _isInHistory
+                                  ? Icons.local_bar
+                                  : Icons.local_bar_outlined,
                               color: Colors.black,
                             ),
-                            tooltip: _isInHistory ? 'Remove from history' : 'Mark as drunk',
-                            onPressed: _checkingStatus
-                                ? null
-                                : () async {
-                                    if (_isInHistory) {
-                                      await _historyRepository.removeRecipeFromHistory(userId, widget._recipe!.id);
-                                      setState(() => _isInHistory = false);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Removed from history!')),
-                                      );
-                                    } else {
-                                      await _historyRepository.addRecipesToHistory(userId, widget._recipe!.id);
-                                      setState(() => _isInHistory = true);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Marked as drunk!')),
-                                      );
-                                    }
-                                  },
+                            tooltip:
+                                _isInHistory
+                                    ? 'Remove from history'
+                                    : 'Mark as drunk',
+                            onPressed:
+                                _checkingStatus
+                                    ? null
+                                    : () async {
+                                      if (_isInHistory) {
+                                        await _historyRepository
+                                            .removeRecipeFromHistory(
+                                              userId,
+                                              widget._recipe!.id,
+                                            );
+                                        setState(() => _isInHistory = false);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Removed from history!',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        await _historyRepository
+                                            .addRecipesToHistory(
+                                              userId,
+                                              widget._recipe!.id,
+                                            );
+                                        setState(() => _isInHistory = true);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Marked as drunk!'),
+                                          ),
+                                        );
+                                      }
+                                    },
                           ),
                         ],
                       ),
@@ -361,13 +456,18 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         constraints: const BoxConstraints(maxWidth: 400),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color:
+                              Theme.of(
+                                context,
+                              ).dialogBackgroundColor, // Use theme color!
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black26,
                               blurRadius: 24,
                               offset: Offset(0, 8),
+                              color: Theme.of(
+                                context,
+                              ).shadowColor.withOpacity(0.2),
                             ),
                           ],
                         ),
@@ -434,24 +534,25 @@ class _RecipeScreenState extends State<RecipeScreen> {
   }
 
   Widget buildDescription(String? description) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // Use theme color
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            blurRadius: 8,
+            offset: Offset(0, 2),
+            color: theme.shadowColor.withOpacity(0.2), // Use theme shadow
+          ),
         ],
       ),
       child: Text(
         description ?? 'No description available.',
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.black87,
-          height: 1.5,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 16, height: 1.5),
         textAlign: TextAlign.left,
       ),
     );
@@ -504,6 +605,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     onSubmit,
     VoidCallback? closeModal,
   }) {
+    final theme = Theme.of(context);
     final _formKey = GlobalKey<FormState>();
     final TextEditingController _commentController = TextEditingController();
     final TextEditingController _photoUrlController = TextEditingController();
@@ -519,13 +621,15 @@ class _RecipeScreenState extends State<RecipeScreen> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Add your comment',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: theme.iconTheme.color),
                     onPressed: closeModal ?? () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -533,13 +637,13 @@ class _RecipeScreenState extends State<RecipeScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _commentController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Comment',
-                  border: OutlineInputBorder(
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                   filled: true,
-                  fillColor: Color(0xFFF7F7F7),
+                  fillColor: theme.cardColor,
                 ),
                 maxLines: 3,
                 validator:
@@ -547,23 +651,25 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         value == null || value.isEmpty
                             ? 'Enter a comment'
                             : null,
+                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _photoUrlController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Photo URL (optional)',
-                  border: OutlineInputBorder(
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                   filled: true,
-                  fillColor: Color(0xFFF7F7F7),
+                  fillColor: theme.cardColor,
                 ),
+                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('Rating:'),
+                  Text('Rating:', style: theme.textTheme.bodyMedium),
                   const SizedBox(width: 8),
                   StarRating(
                     rating: _rating,
@@ -576,17 +682,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () async {
-                    print('recipeId: $recipeId');
-                    print('photoUrl: ${_photoUrlController.text}');
-                    print('rating: $_rating');
-                    print('comment: ${_commentController.text}');
-                    print('userId: $userId');
                     if (_formKey.currentState!.validate()) {
                       if (userId == null || userId.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -604,6 +707,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Comment added!')),
                       );
+                      _fetchComments();
                       _commentController.clear();
                       _photoUrlController.clear();
                       setState(() => _rating = 5);

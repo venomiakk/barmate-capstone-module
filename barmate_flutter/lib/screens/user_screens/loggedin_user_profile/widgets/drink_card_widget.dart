@@ -25,13 +25,13 @@ class DrinkCardWidget extends StatelessWidget {
   final bool isDeleteMode;
 
   const DrinkCardWidget({
-    Key? key,
+    super.key,
     required this.drink,
     this.onRemove,
     this.onTap,
     this.isSelected = false,
     this.isDeleteMode = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

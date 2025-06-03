@@ -1,4 +1,3 @@
-import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

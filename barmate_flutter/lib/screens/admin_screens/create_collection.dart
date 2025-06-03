@@ -48,7 +48,7 @@ class _CreateCollectionState extends State<CreateCollection> {
                     // Centered "Account" text
                     const Align(
                       alignment: Alignment.center,
-                      child: const Text(
+                      child: Text(
                         'Account',
                         style: TextStyle(
                           fontSize: 24,

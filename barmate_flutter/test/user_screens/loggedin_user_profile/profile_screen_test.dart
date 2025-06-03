@@ -1,6 +1,5 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
-import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';

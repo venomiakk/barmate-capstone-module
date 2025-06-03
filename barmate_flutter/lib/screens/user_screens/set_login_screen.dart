@@ -2,7 +2,6 @@ import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_gate.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SetLoginScreen extends StatefulWidget {
   const SetLoginScreen({super.key});

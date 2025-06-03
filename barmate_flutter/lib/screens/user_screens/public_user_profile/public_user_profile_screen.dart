@@ -8,8 +8,7 @@ import 'package:logger/logger.dart';
 class PublicUserProfileScreen extends StatefulWidget {
   final String userId;
 
-  const PublicUserProfileScreen({Key? key, required this.userId})
-    : super(key: key);
+  const PublicUserProfileScreen({super.key, required this.userId});
 
   @override
   State<PublicUserProfileScreen> createState() =>

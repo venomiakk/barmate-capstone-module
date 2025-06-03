@@ -1,4 +1,3 @@
-import 'package:barmate/data/notifiers.dart';
 import 'package:barmate/screens/admin_screens/admin_widget_tree.dart';
 import 'package:barmate/screens/moderator_screens/moderator_widget_tree.dart';
 import 'package:flutter/material.dart';
