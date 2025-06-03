@@ -313,7 +313,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         child:
                             widget._recipe!.photoUrl != null
                                 ? Image.network(
-                                  widget._recipe!.photoUrl!,
+                                  '${constatns.picsBucketUrl}/${widget._recipe!.photoUrl!}',
                                   fit: BoxFit.cover,
                                 )
                                 : Image.asset(
@@ -1048,7 +1048,7 @@ class RecipeSteps {
   RecipeSteps({required this.description, this.order});
 }
 
-// Dodaj model komentarza
+
 class RecipeComment {
   final String userName;
   final String comment;
