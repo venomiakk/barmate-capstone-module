@@ -76,82 +76,123 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _showAddToDialog(
-    Ingredient ingredient,
-    String destination,
-  ) async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: SizedBox(
-                      height: 140,
-                      width: 300,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          _buildCounterRow(
-                            counter =
-                                ingredient.unit == 'ml'
-                                    ? 500
-                                    : ingredient.unit == 'g'
-                                    ? 1000
-                                    : 1,
-                            minValue,
-                            maxValue,
-                            setState,
+  Ingredient ingredient,
+  String destination,
+) async {
+  int counter = ingredient.unit == 'ml'
+      ? 500
+      : ingredient.unit == 'g'
+          ? 1000
+          : 1;
+
+  List<int> defaultValues = ingredient.unit == 'ml'
+      ? [100, 250, 500, 750, 1000, 1500]
+      : ingredient.unit == 'g'
+          ? [100, 200, 500, 750, 1000, 1500]
+          : [1, 2, 3, 5, 10, 20];
+
+  TextEditingController controller =
+      TextEditingController(text: counter.toString());
+
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: SizedBox(
+                    width: 300,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 10),
+                        Text(
+                          'Amount (${ingredient.unit})',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (destination == 'shopping list') {
-                                _addToShoppingList(ingredient.id, counter);
-                              } else {
-                                _addToStash(ingredient.id, counter);
-                              }
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Add to $destination',
-                              style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Enter amount',
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              counter = int.tryParse(value) ?? counter;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          children: defaultValues.map((value) {
+                            return ChoiceChip(
+                              label: Text('$value ${ingredient.unit}'),
+                              selected: counter == value,
+                              onSelected: (_) {
+                                setState(() {
+                                  counter = value;
+                                  controller.text = value.toString();
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (destination == 'shopping list') {
+                              _addToShoppingList(ingredient.id, counter);
+                            } else {
+                              _addToStash(ingredient.id, counter);
+                            }
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                        ],
-                      ),
+                          child: Text(
+                            'Add to $destination',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
 
   Row _buildCounterRow(
     int counter,
@@ -443,19 +484,6 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ),
     );
-    // return Card(
-    //   elevation: 3,
-    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    //   child: Row(
-    //     children: [
-    //       _buildCardImage(recipe.photoUrl),
-    //       const SizedBox(width: 16),
-    //       _buildCardInfo(recipe),
-    //       const SizedBox(width: 8),
-    //       _buildRecipeActions(recipe),
-    //     ],
-    //   ),
-    // );
   }
 
   Column _buildRecipeActions(Recipe recipe) {
