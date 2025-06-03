@@ -32,6 +32,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _loadingIngredients = true;
   bool _loadingSteps = true;
   bool _loadingComments = true;
+  bool _loadingStash = true;
   String userId = '';
   bool _isFavourite = false;
   bool _isInHistory = false;
@@ -81,28 +82,28 @@ class _RecipeScreenState extends State<RecipeScreen> {
           for (final json in response) {
             loaded.add(
               UserStash(
-                ingredientId: json['ingredient_id'],
-                ingredientName: json['ingredient_name'],
-                amount: json['amount'],
-                categoryName:json['category_name']
+                ingredientId: json.ingredientId,
+                ingredientName: json.ingredientName,
+                amount: json.amount,
+                categoryName: json.categoryName
               ),
             );
           }
         }
         setState(() {
-          _ingredients = loaded;
-          _loadingIngredients = false;
+          _userStash = loaded;
+          _loadingStash = false;
         });
       } catch (e) {
         setState(() {
-          _ingredients = [];
-          _loadingIngredients = false;
+          _userStash = [];
+          _loadingStash = false;
         });
       }
     } else {
       setState(() {
-        _ingredients = [];
-        _loadingIngredients = false;
+        _userStash = [];
+        _loadingStash = false;
       });
     }
   }
