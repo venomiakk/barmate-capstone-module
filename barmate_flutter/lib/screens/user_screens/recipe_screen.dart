@@ -1,4 +1,5 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:barmate/constants.dart' as constatns;
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/model/stash_model.dart';
@@ -8,6 +9,7 @@ import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:barmate/repositories/shopping_list_repository.dart';
 
 class RecipeScreen extends StatefulWidget {
   final Recipe? _recipe;
@@ -25,6 +27,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   final IngredientRepository _ingredientRepository = IngredientRepository();
   final RecipeRepository _recipeRepository = RecipeRepository();
   final UserStashRepository _userStashRepository = UserStashRepository();
+  final ShoppingListRepository _shoppingListRepository = ShoppingListRepository();
   List<RecipeIngredientDisplay> _ingredients = [];
   List<RecipeComment> _comments = [];
   List<RecipeSteps> _steps = [];
@@ -37,6 +40,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _isFavourite = false;
   bool _isInHistory = false;
   bool _checkingStatus = true;
+  int _drinkCount = 1; // Domyślna liczba drinków
 
   @override
   void initState() {
@@ -46,6 +50,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _fetchSteps();
     _fetchComments();
     _checkFavouriteAndHistory();
+    
   }
 
   Future<void> _initializePrefs() async {
@@ -53,6 +58,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     userId = prefs.getUserId();
     setState(() {});
     _checkFavouriteAndHistory();
+    _fetchUserStash();
   }
 
   Future<void> _checkFavouriteAndHistory() async {
@@ -120,7 +126,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
             loaded.add(
               RecipeIngredientDisplay(
                 ingredient: Ingredient(
-                  id: 0, // No id returned from your function
+                  id: json['id'], // No id returned from your function
                   name: json['name'] ?? '',
                   description: json['decription'], // typo matches your function
                   photo_url: json['photo_url'],
@@ -193,7 +199,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
         );
         final List<RecipeComment> loaded = [];
         if (response != null) {
-          print('Response: $response');
           for (final json in response) {
             loaded.add(
               RecipeComment(
@@ -208,7 +213,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
         setState(() {
           _comments = loaded;
           _loadingComments = false;
-          print(_comments);
         });
       } catch (e) {
         setState(() {
@@ -223,6 +227,64 @@ class _RecipeScreenState extends State<RecipeScreen> {
       });
     }
   }
+
+  Future<void> _removeIngredientsFromStash() async {
+  try {
+    for (final ri in _ingredients) {
+      final stash = _userStash.firstWhere(
+        (s) => s.ingredientId == ri.ingredient.id,
+        orElse: () => UserStash(
+          ingredientId: -1,
+          ingredientName: '',
+          amount: 0,
+          categoryName: '',
+        ),
+      );
+      if (stash.ingredientId != -1 && ri.amount != null) {
+        final baseAmount = double.tryParse(ri.amount!) ?? 0;
+        final totalAmount = baseAmount * _drinkCount;
+        final newAmount = (stash.amount ?? 0) - totalAmount;
+        if (newAmount <= 0) {
+          await _userStashRepository.removeFromStash(userId, ri.ingredient.id);
+        } else {
+          await _userStashRepository.changeIngredientAmount(
+            userId,
+            ri.ingredient.id,
+            newAmount.round(),
+          );
+        }
+      }
+    }
+    await _fetchUserStash();
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Ingredients removed from stash!')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error removing ingredients: $e')),
+    );
+  }
+}
+
+  bool get _canMakeDrink {
+  for (final ri in _ingredients) {
+    final stash = _userStash.firstWhere(
+      (s) => s.ingredientId == ri.ingredient.id,
+      orElse: () => UserStash(
+        ingredientId: -1,
+        ingredientName: '',
+        amount: 0,
+        categoryName: '',
+      ),
+    );
+    if (stash.ingredientId == -1 || ri.amount == null) return false;
+    final requiredAmount = double.tryParse(ri.amount!) ?? 0;
+    final ownedAmount = double.tryParse(stash.amount.toString());
+    if (ownedAmount == null || ownedAmount < requiredAmount * _drinkCount) return false;
+  }
+  return true;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -281,6 +343,31 @@ class _RecipeScreenState extends State<RecipeScreen> {
                               fontSize: 18,
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Text(
+                                'How many drinks?',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: _drinkCount > 1
+                                    ? () => setState(() => _drinkCount--)
+                                    : null,
+                              ),
+                              Text(
+                                '$_drinkCount',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () => setState(() => _drinkCount++),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           ...buildIngredientCards(),
                           buildStepsList(),
                           buildCommentsList(),
@@ -435,19 +522,43 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (userId.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('User not logged in!')),
-            );
-            return;
-          }
-          showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder:
-                (context) => Center(
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('I made a drink'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            onPressed: userId.isEmpty || !_canMakeDrink
+                ? null
+                : () async {
+                    await _removeIngredientsFromStash();
+                    await _historyRepository
+                                            .addRecipesToHistory(
+                                              userId,
+                                              widget._recipe!.id,
+                                            );
+                  },
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            onPressed: () {
+              if (userId.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User not logged in!')),
+                );
+                return;
+              }
+              showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) => Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Material(
@@ -457,18 +568,13 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         constraints: const BoxConstraints(maxWidth: 400),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).dialogBackgroundColor, // Use theme color!
+                          color: Theme.of(context).dialogBackgroundColor,
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
                               blurRadius: 24,
                               offset: Offset(0, 8),
-                              color: Theme.of(
-                                context,
-                              ).shadowColor.withOpacity(0.2),
+                              color: Theme.of(context).shadowColor.withOpacity(0.2),
                             ),
                           ],
                         ),
@@ -482,56 +588,157 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     ),
                   ),
                 ),
-          );
-        },
-        label: const Text('Add comment'),
-        icon: const Icon(Icons.add_comment),
+                
+              );
+            },
+            label: const Text('Add comment'),
+            icon: const Icon(Icons.add_comment),
+          ),
+        ],
       ),
     );
   }
 
   List<Widget> buildIngredientCards() {
-    if (_loadingIngredients) {
-      return [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ];
-    } else if (_ingredients.isEmpty) {
-      return [const Text('No ingredients found.')];
-    } else {
-      return _ingredients
-          .map(
-            (ri) => Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              child: ListTile(
-                leading:
-                    ri.ingredient.photo_url != null
-                        ? Image.network(
-                          ri.ingredient.photo_url!,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                        )
-                        : null,
-                title: Text(ri.ingredient.name),
-                subtitle: Text(ri.ingredient.description ?? ''),
-                trailing:
-                    ri.amount != null
-                        ? Text(
-                          ri.ingredient.unit != null &&
-                                  ri.ingredient.unit!.isNotEmpty
-                              ? '${ri.amount!} ${ri.ingredient.unit!}'
-                              : ri.amount!,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        )
-                        : null,
-              ),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return _loadingIngredients
+        ? [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
             ),
-          )
-          .toList();
-    }
+          ]
+        : _ingredients.isEmpty
+            ? [const Text('No ingredients found.')]
+            : _ingredients.map((ri) {
+                // Szukamy składnika w stashu
+                final stash = _userStash.firstWhere(
+                  (s) => s.ingredientId == ri.ingredient.id,
+                  orElse: () => UserStash(
+                    ingredientId: -1,
+                    ingredientName: '',
+                    amount: 0,
+                    categoryName: '',
+                  ),
+                );
+                final inStash = stash.ingredientId != -1;
+                // Sprawdzamy ilość (jeśli obie wartości są liczbami)
+                bool enoughAmount = false;
+                if (inStash && ri.amount != null && stash.amount != null) {
+                  final requiredAmountPerDrink = double.tryParse(ri.amount!);
+                  final ownedAmount = double.tryParse(stash.amount.toString());
+                  final totalRequiredAmount = (requiredAmountPerDrink ?? 0) * _drinkCount;
+                  if (ownedAmount != null) {
+                    enoughAmount = ownedAmount >= totalRequiredAmount;
+                  }
+                }
+
+                final cardColor = !inStash
+                    ? (isDark ? Colors.grey[800] : Colors.grey[200])
+                    : theme.cardColor;
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  color: cardColor,
+                  shape: inStash
+                      ? RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: enoughAmount ? Colors.greenAccent : Colors.orangeAccent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        )
+                      : null,
+                  child: ListTile(
+                    leading: ri.ingredient.photo_url != null
+                        ? Image.network(
+                            '${constatns.picsBucketUrl}/${ri.ingredient.photo_url!}',
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            'images/unavailable-image.jpg',
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                    title: Row(
+                      children: [
+                        Text(
+                          ri.ingredient.name,
+                          style: TextStyle(
+                            color: inStash
+                                ? (enoughAmount ? Colors.green[800] : Colors.orange[800])
+                                : theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+                            fontWeight: inStash ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        if (inStash)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Icon(
+                              enoughAmount ? Icons.check_circle : Icons.error_outline,
+                              color: enoughAmount ? Colors.lightGreen : Colors.orangeAccent,
+                              size: 22,
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      ri.ingredient.description ?? '',
+                      style: TextStyle(
+                        color: inStash ? null : theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (ri.amount != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Text(
+                              () {
+                                final baseAmount = double.tryParse(ri.amount!) ?? 0;
+                                final totalAmount = baseAmount * _drinkCount;
+                                final displayAmount = totalAmount == totalAmount.roundToDouble()
+                                    ? totalAmount.toStringAsFixed(0)
+                                    : totalAmount.toStringAsFixed(2);
+                                return ri.ingredient.unit != null && ri.ingredient.unit!.isNotEmpty
+                                    ? '$displayAmount ${ri.ingredient.unit!}'
+                                    : displayAmount;
+                              }(),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        if (!inStash)
+                          IconButton(
+                            icon: const Icon(Icons.add_shopping_cart),
+                            tooltip: 'Add to shopping list',
+                            onPressed: () async {
+                              try {
+                                await _shoppingListRepository.addToShoppingList(
+                                  userId,
+                                  ri.ingredient.id,
+                                  ((double.tryParse(ri.amount ?? '1') ?? 1) * _drinkCount).round(),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error adding to shopping list: $e')),
+                                );
+                                return;
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${ri.ingredient.name} added to shopping list!')),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList();
   }
 
   Widget buildDescription(String? description) {
@@ -726,7 +933,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   }
 
   Widget buildCommentsList() {
-    print('_comments: $_comments');
+  
     if (_loadingComments) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
