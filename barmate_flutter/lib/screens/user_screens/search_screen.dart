@@ -108,7 +108,7 @@ class _SearchPageState extends State<SearchPage> {
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: SizedBox(
-                    width: 300,
+                    width: 350,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
