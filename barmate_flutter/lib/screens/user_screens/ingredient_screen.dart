@@ -1,45 +1,97 @@
 import 'package:flutter/material.dart';
-import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/model/ingredient_model.dart';
-import 'package:barmate/repositories/recipe_repository.dart';
-import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/model/stash_model.dart';
+import 'package:barmate/repositories/ingredient_repository.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
+import 'package:barmate/repositories/stash_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class IngredientScreen extends StatelessWidget {
-  final UserStash ingredient;
+class IngredientScreen extends StatefulWidget {
+  final int ingredientId;
+  final bool isFromStash;
+
   final RecipeRepository recipeRepository;
   final IngredientRepository ingredientRepository;
+  final UserStashRepository stashRepository;
 
   IngredientScreen({
     super.key,
-    required this.ingredient,
+    required this.ingredientId,
+    this.isFromStash = false,
     RecipeRepository? recipeRepository,
     IngredientRepository? ingredientRepository,
+    UserStashRepository? stashRepository,
   })  : recipeRepository = recipeRepository ?? RecipeRepository(),
-        ingredientRepository = ingredientRepository ?? IngredientRepository();
+        ingredientRepository = ingredientRepository ?? IngredientRepository(),
+        stashRepository = stashRepository ?? UserStashRepository();
+
+  @override
+  State<IngredientScreen> createState() => _IngredientScreenState();
+}
+
+class _IngredientScreenState extends State<IngredientScreen> {
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+
+  late Future<Ingredient?> _ingredientFuture;
+  late Future<UserStash?> _stashFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _ingredientFuture = widget.ingredientRepository.fetchIngredientById(widget.ingredientId);
+    _stashFuture = _loadStash();
+  }
+
+  Future<UserStash?> _loadStash() async {
+    if (userId == null) return null;
+
+    final stash = await widget.stashRepository.fetchUserStash(userId);
+    return stash.firstWhere(
+      (item) => item.ingredientId == widget.ingredientId
+    );
+  }
+
+  Future<void> _updateAmount(int newAmount) async {
+    if (userId == null) return;
+
+    if (newAmount <= 0) {
+      await widget.stashRepository.removeFromStash(userId, widget.ingredientId);
+    } else {
+      await widget.stashRepository.changeIngredientAmount(userId, widget.ingredientId, newAmount);
+    }
+
+    setState(() {
+      _stashFuture = _loadStash();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text(ingredient.ingredientName)),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text('Szczegóły składnika'),
+      ),
       body: FutureBuilder<Ingredient?>(
-        future: ingredientRepository.fetchIngredientById(ingredient.ingredientId),
+        future: _ingredientFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data == null) {
-            return _buildBasicIngredientInfo(theme);
+            return Center(
+              child: Text(
+                'Nie udało się pobrać danych składnika.',
+                style: theme.textTheme.bodyMedium,
+              ),
+            );
           }
 
-          final fullIngredient = snapshot.data!;
-
-          final amountWithUnit = ingredient.amount != null
-              ? '${ingredient.amount} ${fullIngredient.unit ?? ''}'.trim()
-              : '';
+          final ingredient = snapshot.data!;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -50,27 +102,16 @@ class IngredientScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(22),
                   child: AspectRatio(
                     aspectRatio: 3 / 2,
-                    child: fullIngredient.photo_url != null && fullIngredient.photo_url!.isNotEmpty
-                        ? Image.network(
-                            fullIngredient.photo_url!,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'images/przyklad.png',
-                            fit: BoxFit.cover,
-                          ),
+                    child: (ingredient.photo_url?.isNotEmpty ?? false)
+                        ? Image.network(ingredient.photo_url!, fit: BoxFit.cover)
+                        : Image.asset('images/przyklad.png', fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 Text(
-                  fullIngredient.name,
+                  ingredient.name,
                   style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$amountWithUnit • ${ingredient.categoryName}',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -81,6 +122,7 @@ class IngredientScreen extends StatelessWidget {
                   endIndent: 24,
                 ),
                 const SizedBox(height: 16),
+
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -90,22 +132,63 @@ class IngredientScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  fullIngredient.description ?? 'Brak opisu składnika.',
+                  ingredient.description ?? 'Brak opisu składnika.',
                   style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.justify,
                 ),
                 const SizedBox(height: 24),
+
+                if (userId != null && widget.isFromStash)
+                  FutureBuilder<UserStash?>(
+                    future: _stashFuture,
+                    builder: (context, stashSnapshot) {
+                      if (stashSnapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+
+                      final stash = stashSnapshot.data;
+                      final currentAmount = stash?.amount ?? 0;
+
+                      return Column(
+                        children: [
+                          Text('Ilość w schowku:', style: theme.textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle),
+                                onPressed: currentAmount > 0
+                                    ? () => _updateAmount(currentAmount - 1)
+                                    : null,
+                              ),
+                              Text(
+                                '$currentAmount szt.',
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle),
+                                onPressed: () => _updateAmount(currentAmount + 1),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    },
+                  ),
+
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Drinki zawierające ${fullIngredient.name}',
+                    'Drinki zawierające ${ingredient.name}',
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 const SizedBox(height: 12),
 
                 FutureBuilder<List<Recipe>>(
-                  future: recipeRepository.getRecipesByIngredient(ingredient.ingredientId),
+                  future: widget.recipeRepository.getRecipesByIngredient(widget.ingredientId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -115,25 +198,21 @@ class IngredientScreen extends StatelessWidget {
                     }
 
                     final drinks = snapshot.data!;
-
                     return ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: drinks.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final drink = drinks[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              drink.name,
-                              style: theme.textTheme.bodyLarge,
-                            ),
+                      itemCount: drinks.length,
+                      itemBuilder: (context, index) => Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            drinks[index].name,
+                            style: theme.textTheme.bodyLarge,
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -145,13 +224,5 @@ class IngredientScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildBasicIngredientInfo(ThemeData theme) {
-    return Center(
-      child: Text(
-        'Brak pełnych danych dla składnika ${ingredient.ingredientName}',
-        style: theme.textTheme.bodyMedium,
-      ),
-    );
-  }
 }
+

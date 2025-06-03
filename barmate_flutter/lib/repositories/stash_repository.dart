@@ -59,5 +59,16 @@ class UserStashRepository {
   }
 }
 
+Future<UserStash?> fetchSingleIngredientFromStash(var userId, int ingredientId) async {
+  try {
+    final stash = await fetchUserStash(userId);
+    return stash.firstWhere(
+      (element) => element.ingredientId == ingredientId
+    );
+  } catch (e) {
+    print('Error fetching single stash item: $e');
+    return null;
+  }
+}
 
 }

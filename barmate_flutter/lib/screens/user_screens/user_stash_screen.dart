@@ -430,12 +430,15 @@ class _UserStashScreenState extends State<UserStashScreen> {
         if (isDeleteMode) {
           _toggleSelection(entry.ingredientId);
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => IngredientScreen(ingredient: entry),
-            ),
-          );
+Navigator.push(
+  context,
+  MaterialPageRoute(
+        builder: (_) => IngredientScreen(
+      ingredientId: entry.ingredientId,
+      isFromStash: true,
+    ),
+  ),
+);
         }
       },
       child: Container(
