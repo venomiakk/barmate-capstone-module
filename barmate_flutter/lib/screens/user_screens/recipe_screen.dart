@@ -398,7 +398,7 @@ int get _commentsCount => _comments.length;
                                     _isFavourite
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.primary, // kolor z theme
                                   ),
                                   tooltip: _isFavourite
                                       ? 'Remove from favorites'
@@ -446,7 +446,7 @@ int get _commentsCount => _comments.length;
                                     _isInHistory
                                         ? Icons.local_bar
                                         : Icons.local_bar_outlined,
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.primary, // kolor z theme
                                   ),
                                   tooltip: _isInHistory
                                       ? 'Remove from history'
@@ -571,10 +571,17 @@ int get _commentsCount => _comments.length;
                 ? null
                 : () async {
                     await _removeIngredientsFromStash();
-                    await _historyRepository.addRecipesToHistory(
+                    // Sprawdź czy już jest w historii zanim dodasz
+                    final alreadyInHistory = await _historyRepository.checkIfHisotryRecipesExists(
                       userId,
                       widget._recipe!.id,
                     );
+                    if (!alreadyInHistory) {
+                      await _historyRepository.addRecipesToHistory(
+                        userId,
+                        widget._recipe!.id,
+                      );
+                    }
                   },
           ),
           const SizedBox(height: 12),
