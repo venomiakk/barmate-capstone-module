@@ -8,6 +8,7 @@ import 'package:barmate/repositories/account_repository.dart';
 import 'package:barmate/repositories/tag_repository.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/public_user_profile_screen.dart';
 import 'package:barmate/screens/user_screens/search_filter_screen.dart';
+import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -276,8 +277,20 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Card _buildIngredientCard(Ingredient ingredient) {
-    return Card(
+Widget _buildIngredientCard(Ingredient ingredient) {
+  return InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IngredientScreen(
+            ingredientId: ingredient.id,
+            isFromStash: true,
+          ),
+        ),
+      );
+    },
+    child: Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Row(
@@ -289,8 +302,10 @@ class _SearchPageState extends State<SearchPage> {
           _buildIngredientActions(ingredient),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Stack _buildCardImage(String? photoUrl) {
     return Stack(
