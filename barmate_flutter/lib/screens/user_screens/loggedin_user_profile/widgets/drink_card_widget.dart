@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class Drink {
   final int id;
@@ -65,11 +66,11 @@ class DrinkCardWidget extends StatelessWidget {
                 child:
                     drink.imageUrl.isNotEmpty
                         ? Image.network(
-                          drink.imageUrl,
+                          '${constants.picsBucketUrl}/${drink.imageUrl}',
                           fit: BoxFit.cover,
                           errorBuilder:
                               (ctx, error, _) => Image.asset(
-                                'images/przyklad.png',
+                                '${constants.picsBucketUrl}/${drink.imageUrl}',
                                 fit: BoxFit.cover,
                               ),
                         )

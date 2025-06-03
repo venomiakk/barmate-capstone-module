@@ -120,4 +120,20 @@ class RecipeRepository {
     }
     return [];
   }
+
+  Future<dynamic> getRecipeById(int recipeId) async {
+    try {
+      final response = await client.rpc(
+        'getRecipeById',
+        params: {'recipe_id': recipeId},
+      );
+
+      if (response != null && response is Map<String, dynamic>) {
+        return Recipe.fromJson(response);
+      }
+    } catch (e) {
+      print('Error fetching recipe by ID: $e');
+    }
+    return null;
+  }
 }

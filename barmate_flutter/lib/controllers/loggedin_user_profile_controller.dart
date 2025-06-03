@@ -2,7 +2,9 @@ import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/data/notifiers.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
+import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:barmate/constants.dart' as constants;
@@ -12,6 +14,8 @@ class LoggedinUserProfileController {
   final authService = AuthService();
   final LoggedinUserProfileRepository userProfileRepository =
       LoggedinUserProfileRepository();
+  final RecipeRepository recipeRepository =
+      RecipeRepository();
 
   String? userTitle;
   // Fabryka do tworzenia instancji
@@ -129,6 +133,20 @@ class LoggedinUserProfileController {
       await userProfileRepository.removeDrink(drinkId);
     } catch (e) {
       logger.w("Error removing drink: $e");
+    }
+  }
+
+  Future<Recipe> getRecipeById(int recipeId) async {
+    try {
+      final recipe = await recipeRepository.getRecipeById(recipeId);
+      if (recipe != null) {
+        return recipe;
+      } else {
+        throw Exception('Recipe not found');
+      }
+    } catch (e) {
+      logger.e("Error fetching recipe by ID: $e");
+      throw Exception('Failed to fetch recipe');
     }
   }
 }

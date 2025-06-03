@@ -55,10 +55,7 @@ class EditProfileRepository {
     return [];
   }
 
-  Future<void> updateProfile(
-    int? title,
-    String? bio,
-  ) async {
+  Future<void> updateProfile(int? title, String? bio) async {
     try {
       await client.rpc(
         'update_profile',
@@ -84,7 +81,7 @@ class EditProfileRepository {
     // }
     try {
       await client.storage
-          .from('profilepics')
+          .from('barmatepics')
           .upload(
             'avatars/${getCurrentUserId()}',
             image,
