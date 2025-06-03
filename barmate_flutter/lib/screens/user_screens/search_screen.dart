@@ -86,7 +86,7 @@ class _SearchPageState extends State<SearchPage> {
           : 1;
 
   List<int> defaultValues = ingredient.unit == 'ml'
-      ? [100, 250, 500, 750, 1000, 1500]
+      ? [100, 330, 500, 700, 1000, 2000]
       : ingredient.unit == 'g'
           ? [100, 200, 500, 750, 1000, 1500]
           : [1, 2, 3, 5, 10, 20];
