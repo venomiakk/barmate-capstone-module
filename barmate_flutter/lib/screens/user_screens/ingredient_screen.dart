@@ -1,4 +1,5 @@
 import 'package:barmate/constants.dart' as constants;
+import 'package:barmate/constants.dart' as constatns;
 import 'package:flutter/material.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -108,8 +109,8 @@ class _IngredientScreenState extends State<IngredientScreen> {
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
                     child: (ingredient.photo_url?.isNotEmpty ?? false)
-                        ? Image.network(ingredient.photo_url!, fit: BoxFit.cover)
-                        : Image.asset('images/przyklad.png', fit: BoxFit.cover),
+                        ? Image.network('${constatns.picsBucketUrl}/${ingredient.photo_url!}', fit: BoxFit.cover)
+                        : Image.asset('images/unavailable-image.jpg', fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 16),

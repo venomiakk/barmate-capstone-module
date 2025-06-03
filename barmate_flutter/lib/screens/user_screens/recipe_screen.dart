@@ -8,6 +8,7 @@ import 'package:barmate/repositories/history_recipes_respository.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
+import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
 
@@ -641,103 +642,116 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     ? (isDark ? Colors.grey[800] : Colors.grey[200])
                     : theme.cardColor;
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  color: cardColor,
-                  shape: inStash
-                      ? RoundedRectangleBorder(
-                          side: BorderSide(
-                            color: enoughAmount ? Colors.greenAccent : Colors.orangeAccent,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        )
-                      : null,
-                  child: ListTile(
-                    leading: ri.ingredient.photo_url != null
-                        ? Image.network(
-                            '${constatns.picsBucketUrl}/${ri.ingredient.photo_url!}',
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'images/unavailable-image.jpg',
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          ),
-                    title: Row(
-                      children: [
-                        Text(
-                          ri.ingredient.name,
-                          style: TextStyle(
-                            color: inStash
-                                ? (enoughAmount ? Colors.green[800] : Colors.orange[800])
-                                : theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
-                            fontWeight: inStash ? FontWeight.bold : FontWeight.normal,
-                          ),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => IngredientScreen(
+                          ingredientId: ri.ingredient.id,
+                          isFromStash: false,
                         ),
-                        if (inStash)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 6),
-                            child: Icon(
-                              enoughAmount ? Icons.check_circle : Icons.error_outline,
-                              color: enoughAmount ? Colors.lightGreen : Colors.orangeAccent,
-                              size: 22,
-                            ),
-                          ),
-                      ],
-                    ),
-                    subtitle: Text(
-                      ri.ingredient.description ?? '',
-                      style: TextStyle(
-                        color: inStash ? null : theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                       ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (ri.amount != null)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              () {
-                                final baseAmount = double.tryParse(ri.amount!) ?? 0;
-                                final totalAmount = baseAmount * _drinkCount;
-                                final displayAmount = totalAmount == totalAmount.roundToDouble()
-                                    ? totalAmount.toStringAsFixed(0)
-                                    : totalAmount.toStringAsFixed(2);
-                                return ri.ingredient.unit != null && ri.ingredient.unit!.isNotEmpty
-                                    ? '$displayAmount ${ri.ingredient.unit!}'
-                                    : displayAmount;
-                              }(),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    color: cardColor,
+                    shape: inStash
+                        ? RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: enoughAmount ? Colors.greenAccent : Colors.orangeAccent,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          )
+                        : null,
+                    child: ListTile(
+                      leading: ri.ingredient.photo_url != null
+                          ? Image.network(
+                              '${constatns.picsBucketUrl}/${ri.ingredient.photo_url!}',
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'images/unavailable-image.jpg',
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            ),
+                      title: Row(
+                        children: [
+                          Text(
+                            ri.ingredient.name,
+                            style: TextStyle(
+                              color: inStash
+                                  ? (enoughAmount ? Colors.green[800] : Colors.orange[800])
+                                  : theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+                              fontWeight: inStash ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
-                        if (!inStash)
-                          IconButton(
-                            icon: const Icon(Icons.add_shopping_cart),
-                            tooltip: 'Add to shopping list',
-                            onPressed: () async {
-                              try {
-                                await _shoppingListRepository.addToShoppingList(
-                                  userId,
-                                  ri.ingredient.id,
-                                  ((double.tryParse(ri.amount ?? '1') ?? 1) * _drinkCount).round(),
-                                );
-                              } catch (e) {
+                          if (inStash)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Icon(
+                                enoughAmount ? Icons.check_circle : Icons.error_outline,
+                                color: enoughAmount ? Colors.lightGreen : Colors.orangeAccent,
+                                size: 22,
+                              ),
+                            ),
+                        ],
+                      ),
+                      subtitle: Text(
+                        ri.ingredient.description ?? '',
+                        style: TextStyle(
+                          color: inStash ? null : theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (ri.amount != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Text(
+                                () {
+                                  final baseAmount = double.tryParse(ri.amount!) ?? 0;
+                                  final totalAmount = baseAmount * _drinkCount;
+                                  final displayAmount = totalAmount == totalAmount.roundToDouble()
+                                      ? totalAmount.toStringAsFixed(0)
+                                      : totalAmount.toStringAsFixed(2);
+                                  return ri.ingredient.unit != null && ri.ingredient.unit!.isNotEmpty
+                                      ? '$displayAmount ${ri.ingredient.unit!}'
+                                      : displayAmount;
+                                }(),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          if (!inStash)
+                            IconButton(
+                              icon: const Icon(Icons.add_shopping_cart),
+                              tooltip: 'Add to shopping list',
+                              onPressed: () async {
+                                try {
+                                  await _shoppingListRepository.addToShoppingList(
+                                    userId,
+                                    ri.ingredient.id,
+                                    ((double.tryParse(ri.amount ?? '1') ?? 1) * _drinkCount).round(),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error adding to shopping list: $e')),
+                                  );
+                                  return;
+                                }
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error adding to shopping list: $e')),
+                                  SnackBar(content: Text('${ri.ingredient.name} added to shopping list!')),
                                 );
-                                return;
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${ri.ingredient.name} added to shopping list!')),
-                              );
-                            },
-                          ),
-                      ],
+                              },
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 );
