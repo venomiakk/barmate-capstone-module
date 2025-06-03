@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/model/shopping_list_model.dart';
+import 'package:barmate/repositories/stash_repository.dart'; 
 import 'package:barmate/repositories/shopping_list_repository.dart';
 
 class ShoppingListScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class ShoppingListScreen extends StatefulWidget {
 
 class _ShoppingListScreenState extends State<ShoppingListScreen> {
   final ShoppingListRepository repository = ShoppingListRepository();
+  final UserStashRepository stashRepository = UserStashRepository();
   final TextEditingController _controller = TextEditingController();
 
   List<ShoppingList> shoppingList = [];
@@ -35,15 +37,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     });
   }
 
-  Future<void> _deleteFullShoppingList() async {
+  Future<void> _clearShoppingListAndAddToStash() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    for (final item in shoppingList) {
+      if (item.ingredientId > 1000000000000) continue;
+
+      await stashRepository.addToStash(
+        userId,
+        item.ingredientId,
+        item.amount,
+      );
+    }
+
     await repository.deleteFullShoppingList();
+
     setState(() {
       shoppingList.clear();
       checkedItems.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cała lista została kupiona i usunięta.')),
-    );
+
+    // Tutaj usunięto SnackBar, aby nie wyświetlać komunikatu
   }
 
   @override
@@ -181,7 +196,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
                               children: [
-                                // Obrazek z gradientem
                                 Stack(
                                   children: [
                                     ClipRRect(
@@ -238,7 +252,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                 ),
                                 const SizedBox(width: 16),
 
-                                // Nazwa + ilość
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -254,7 +267,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                     item.ingredientId,
                                                   )
                                                   ? Colors.grey
-                                                  : Colors.black,
+                                                  : Theme.of(context).textTheme.bodyLarge!.color,
                                           decoration:
                                               checkedItems.contains(
                                                     item.ingredientId,
@@ -275,7 +288,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                     item.ingredientId,
                                                   )
                                                   ? Colors.grey
-                                                  : Colors.black,
+                                                  : Theme.of(context).textTheme.bodyLarge!.color,
                                         ),
                                       ),
                                     ],
@@ -283,7 +296,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                 ),
                                 const SizedBox(width: 8),
 
-                                // Check toggle
                                 IconButton(
                                   icon: Icon(
                                     checkedItems.contains(item.ingredientId)
@@ -294,7 +306,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                             ? Colors.green
                                             : null,
                                   ),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     setState(() {
                                       if (checkedItems.contains(
                                         item.ingredientId,
@@ -303,12 +315,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                       } else {
                                         checkedItems.add(item.ingredientId);
                                       }
-
-                                      if (checkedItems.length ==
-                                          shoppingList.length) {
-                                        _deleteFullShoppingList();
-                                      }
                                     });
+
+                                    if (checkedItems.length == shoppingList.length) {
+                                      await _clearShoppingListAndAddToStash();
+                                    }
                                   },
                                 ),
                               ],
