@@ -243,15 +243,19 @@ class _RecipeScreenState extends State<RecipeScreen> {
       if (stash.ingredientId != -1 && ri.amount != null) {
         final baseAmount = double.tryParse(ri.amount!) ?? 0;
         final totalAmount = baseAmount * _drinkCount;
-        final newAmount = (stash.amount ?? 0) - totalAmount;
-        if (newAmount <= 0) {
-          await _userStashRepository.removeFromStash(userId, ri.ingredient.id);
-        } else {
-          await _userStashRepository.changeIngredientAmount(
-            userId,
-            ri.ingredient.id,
-            newAmount.round(),
-          );
+        final ownedAmount = stash.amount ?? 0;
+        final toRemove = ownedAmount >= totalAmount ? totalAmount : ownedAmount;
+        final newAmount = ownedAmount - toRemove;
+        if (toRemove > 0) {
+          if (newAmount <= 0) {
+            await _userStashRepository.removeFromStash(userId, ri.ingredient.id);
+          } else {
+            await _userStashRepository.changeIngredientAmount(
+              userId,
+              ri.ingredient.id,
+              newAmount.round(),
+            );
+          }
         }
       }
     }
@@ -535,15 +539,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            onPressed: userId.isEmpty || !_canMakeDrink
+            onPressed: userId.isEmpty
                 ? null
                 : () async {
                     await _removeIngredientsFromStash();
-                    await _historyRepository
-                                            .addRecipesToHistory(
-                                              userId,
-                                              widget._recipe!.id,
-                                            );
+                    await _historyRepository.addRecipesToHistory(
+                      userId,
+                      widget._recipe!.id,
+                    );
                   },
           ),
           const SizedBox(height: 12),
