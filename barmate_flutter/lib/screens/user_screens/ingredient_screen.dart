@@ -1,5 +1,4 @@
 import 'package:barmate/constants.dart' as constants;
-import 'package:barmate/constants.dart' as constatns;
 import 'package:flutter/material.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -72,214 +71,263 @@ class _IngredientScreenState extends State<IngredientScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildDescription(String? description) {
     final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Szczegóły składnika'),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: theme.cardColor, // Use theme color
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            offset: Offset(0, 2),
+            color: theme.shadowColor.withOpacity(0.2), // Use theme shadow
+          ),
+        ],
       ),
-      body: FutureBuilder<Ingredient?>(
-        future: _ingredientFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      child: Text(
+        description ?? 'No description available.',
+        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 16, height: 1.5),
+        textAlign: TextAlign.left,
+      ),
+    );
+  }
 
-          if (!snapshot.hasData || snapshot.data == null) {
-            return Center(
-              child: Text(
-                'Nie udało się pobrać danych składnika.',
-                style: theme.textTheme.bodyMedium,
-              ),
-            );
-          }
+  @override
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
 
-          final ingredient = snapshot.data!;
+  return Scaffold(
+    body: FutureBuilder<Ingredient?>(
+      future: _ingredientFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: (ingredient.photo_url?.isNotEmpty ?? false)
-                        ? Image.network('${constatns.picsBucketUrl}/${ingredient.photo_url!}', fit: BoxFit.cover)
-                        : Image.asset('images/unavailable-image.jpg', fit: BoxFit.cover),
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Center(
+            child: Text(
+              'Nie udało się pobrać danych składnika.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        final ingredient = snapshot.data!;
+
+        return Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 400,
+                  pinned: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                        child: (ingredient.photo_url?.isNotEmpty ?? false)
+                            ? Image.network(
+                                '${constants.picsBucketUrl}/${ingredient.photo_url!}',
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                'images/unavailable-image.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                Text(
-                  ingredient.name,
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                SliverToBoxAdapter(
+                   child: Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                     child: Center(
+                       child: Text(
+                         ingredient.name,
+                         style: const TextStyle(
+                           fontSize: 28,
+                           fontWeight: FontWeight.bold,
+                           shadows: [
+                             Shadow(
+                               blurRadius: 8,
+                               color: Colors.black54,
+                               offset: Offset(0, 2),
+                             ),
+                           ],
+                         ),
+                         maxLines: 2,
+                         overflow: TextOverflow.ellipsis,
+                         textAlign: TextAlign.center,
+                       ),
+                     ),
+                   ),
                 ),
-                const SizedBox(height: 16),
-                Divider(
-                  thickness: 1,
-                  color: theme.colorScheme.outline.withOpacity(.4),
-                  indent: 24,
-                  endIndent: 24,
-                ),
-                const SizedBox(height: 16),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Opis',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  ingredient.description ?? 'Brak opisu składnika.',
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.justify,
-                ),
-                const SizedBox(height: 24),
-
-                if (userId != null && widget.isFromStash)
-                  FutureBuilder<UserStash?>(
-                    future: _stashFuture,
-                    builder: (context, stashSnapshot) {
-                      if (stashSnapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-
-                      final stash = stashSnapshot.data;
-                      final currentAmount = stash?.amount ?? 0;
-
-                      return Column(
-                        children: [
-                          Text('Ilość w schowku:', style: theme.textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle),
-                                onPressed: currentAmount > 0
-                                    ? () => _updateAmount(currentAmount - 1)
-                                    : null,
-                              ),
-                              Text(
-                                '$currentAmount szt.',
-                                style: theme.textTheme.titleMedium,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle),
-                                onPressed: () => _updateAmount(currentAmount + 1),
-                              ),
-                            ],
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            'Description:',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
-                          const SizedBox(height: 20),
-                        ],
-                      );
-                    },
-                  ),
+                          const SizedBox(height: 8),
+                          buildDescription(ingredient.description),
+                        const SizedBox(height: 16),
 
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Drinki zawierające ${ingredient.name}',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 12),
+                        if (userId != null && widget.isFromStash)
+                          FutureBuilder<UserStash?>(
+                            future: _stashFuture,
+                            builder: (context, stashSnapshot) {
+                              if (stashSnapshot.connectionState == ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
 
-                FutureBuilder<List<Recipe>>(
-                  future: widget.recipeRepository.getRecipesByIngredient(widget.ingredientId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text('Brak drinków dla tego składnika.');
-                    }
+                              final stash = stashSnapshot.data;
+                              final currentAmount = stash?.amount ?? 0;
 
-                    final drinks = snapshot.data!;
-                    return SizedBox(
-                      height: 220,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: drinks.length,
-                          itemBuilder: (context, index) {
-                            final drink = drinks[index];
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RecipeScreen(recipe: drink),
-                                  ),
-                                );
-                              },
-                              child: Card(
-                                elevation: 5,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                margin: const EdgeInsets.only(right: 12),
-                                child: Container(
-                                  width: 140,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                              return Column(
+                                children: [
+                                  Text('Ilość w schowku:', style: theme.textTheme.titleMedium),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(15),
-                                          topRight: Radius.circular(15),
-                                        ),
-                                        child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
-                                            ? Image.network(
-                                                '${constants.picsBucketUrl}/${drink.photoUrl!}',
-                                                height: 160,  // większe zdjęcie
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Image.asset(
-                                                'images/przyklad.png',
-                                                height: 160,
-                                                fit: BoxFit.cover,
-                                              ),
+                                      IconButton(
+                                        icon: const Icon(Icons.remove_circle),
+                                        onPressed: currentAmount > 0
+                                            ? () => _updateAmount(currentAmount - 1)
+                                            : null,
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                                        child: Text(
-                                          drink.name,
-                                          style: Theme.of(context).textTheme.bodyMedium,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                        ),
+                                      Text(
+                                        '$currentAmount ${ingredient.unit}',
+                                        style: theme.textTheme.titleMedium,
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.add_circle),
+                                        onPressed: () => _updateAmount(currentAmount + 1),
                                       ),
                                     ],
                                   ),
+                                  const SizedBox(height: 20),
+                                ],
+                              );
+                            },
+                          ),
+
+                        Text(
+                          'Drinks which contains: ${ingredient.name}',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 12),
+
+                        FutureBuilder<List<Recipe>>(
+                          future: widget.recipeRepository.getRecipesByIngredient(widget.ingredientId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const Text('Brak drinków dla tego składnika.');
+                            }
+
+                            final drinks = snapshot.data!;
+                            return SizedBox(
+                              height: 220,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: drinks.length,
+                                  itemBuilder: (context, index) {
+                                    final drink = drinks[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => RecipeScreen(recipe: drink),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        elevation: 5,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                        margin: const EdgeInsets.only(right: 12),
+                                        child: Container(
+                                          width: 140,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(15),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius.only(
+                                                  topLeft: Radius.circular(15),
+                                                  topRight: Radius.circular(15),
+                                                ),
+                                                child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
+                                                    ? Image.network(
+                                                        '${constants.picsBucketUrl}/${drink.photoUrl!}',
+                                                        height: 160,
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                    : Image.asset(
+                                                        'images/przyklad.png',
+                                                        height: 160,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                                child: Text(
+                                                  drink.name,
+                                                  style: Theme.of(context).textTheme.bodyMedium,
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             );
                           },
                         ),
-                      ),
-                    );
-                  },
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 32),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
+          ],
+        );
+      },
+    ),
+  );
+}
 }
