@@ -97,7 +97,7 @@ class LoggedinUserProfileController {
       final prefs = await UserPreferences.getInstance();
       final userId = prefs.getUserId();
       final avatarName = await userProfileRepository.fetchUserAvatar(userId);
-      final avatarUrl = '${constants.profilePicsUrl}/$avatarName';
+      final avatarUrl = '${constants.picsBucketUrl}/$avatarName';
       return avatarUrl;
     } catch (e) {
       logger.w("Error fetching user avatar: $e");

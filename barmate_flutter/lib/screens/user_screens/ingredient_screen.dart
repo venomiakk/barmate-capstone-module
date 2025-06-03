@@ -1,3 +1,4 @@
+import 'package:barmate/constants.dart' as constants;
 import 'package:flutter/material.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -44,13 +45,16 @@ class _IngredientScreenState extends State<IngredientScreen> {
     _stashFuture = _loadStash();
   }
 
-  Future<UserStash?> _loadStash() async {
+    Future<UserStash?> _loadStash() async {
     if (userId == null) return null;
 
     final stash = await widget.stashRepository.fetchUserStash(userId);
-    return stash.firstWhere(
-      (item) => item.ingredientId == widget.ingredientId
-    );
+    for (final item in stash) {
+      if (item.ingredientId == widget.ingredientId) {
+        return item;
+      }
+    }
+    return null;
   }
 
   Future<void> _updateAmount(int newAmount) async {
@@ -238,7 +242,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
                                         ),
                                         child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
                                             ? Image.network(
-                                                drink.photoUrl!,
+                                                '${constants.picsBucketUrl}/${drink.photoUrl!}',
                                                 height: 160,  // większe zdjęcie
                                                 fit: BoxFit.cover,
                                               )

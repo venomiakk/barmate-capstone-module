@@ -33,7 +33,7 @@ class PublicUserProfileWidget extends StatelessWidget {
                 backgroundImage:
                     userAvatarUrl != null
                         ? NetworkImage(
-                          '${constants.profilePicsUrl}/${userAvatarUrl!}',
+                          '${constants.picsBucketUrl}/${userAvatarUrl!}',
                         )
                         : const AssetImage('images/unavailable-image.jpg')
                             as ImageProvider,
