@@ -35,15 +35,15 @@ flutter pub run build_runner build
 - [x] Filtrowanie wyników
 - [ ] Tablica powiadomień
 - [ ] Generowanie przepisu na podstawie zapasów
-- [ ] Skalowanie przepisów
+- [x] Skalowanie przepisów
 - [ ] Dodawanie przepisów
 - [x] Dodawanie składników do listy zakupów
 - [x] Usuwanie składników z listy zakupów
 - [ ] Powiadomienia o niskim stanie zapasów
 - [x] Ulubione drinki **(są w profilu)**
-- [ ] Komentowanie przepisów
-- [ ] Ocenianie przepisów
-- [ ] Rejestracja przygotowanych drinków
+- [x] Komentowanie przepisów
+- [x] Ocenianie przepisów
+- [x] Rejestracja przygotowanych drinków
 - [ ] Podsumowanie historii
 - [ ] Granie w minigry
 - [x] Wyszukiwanie innych użytkowników
