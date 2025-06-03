@@ -279,11 +279,22 @@ Future<void> _updateAmount(int newAmount) async {
                     ],
                   ),
                 ),
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0), // trochę paddingu, żeby nie był przy krawędzi
+                  child: Material(
+                    color: Colors.black.withOpacity(0.4), // szare półprzezroczyste tło
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0), // padding wokół ikony
+                        child: Icon(Icons.arrow_back, color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               SliverToBoxAdapter(
