@@ -2,7 +2,6 @@ import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
-import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_feed_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -167,7 +166,20 @@ class _UserPageState extends State<UserPage> {
             ),
 
             const SizedBox(height: 24),
-            UserProfileFeedWidget(),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Your Recipes',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            //TODO : Add a widget to display user recipes
+            Center(
+              child: Text(
+                'You don\'t have any recipes yet.',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ),
           ],
         ),
       ),

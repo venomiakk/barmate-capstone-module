@@ -1,4 +1,7 @@
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
+import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart';
 import 'package:logger/logger.dart';
@@ -39,8 +42,7 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
                 id: favDrink.id,
                 recipeId: favDrink.recipeId,
                 name: favDrink.drinkName, // Use name with fallback
-                imageUrl:
-                    'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/drinkpics//sample_drink.jpg', // Use imageUrl properly
+                imageUrl: favDrink.imageUrl,
                 isFavorite: true,
               ),
             )
@@ -106,14 +108,15 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
     }
   }
 
-  void viewDrinkDetails(Drink drink) {
-    // TODO: Navigate to drink details screen
-    logger.w('TODO: Navigate to drink details screen for ${drink.recipeId}');
-    // Example:
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => DrinkDetailsScreen(drink: drink)),
-    // );
+  void viewDrinkDetails(Drink drink) async {
+    final recipe = await LoggedinUserProfileController().getRecipeById(
+      drink.recipeId,
+    );
+    // logger.d('Navigating to recipe details for: ${recipe.photoUrl}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
+    );
   }
 
   @override

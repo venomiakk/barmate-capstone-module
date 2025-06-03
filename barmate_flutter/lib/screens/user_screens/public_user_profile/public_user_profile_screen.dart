@@ -143,16 +143,24 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
             const SizedBox(height: 24),
 
             // User's feed/posts section
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                'Recent Activity/ User drinks??',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                '$username\'s Recipes',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
-            // TODO: Add user feed widget
-            const Center(child: Text("User's activity feed will appear here")),
+            // TODO: Add users drniks
+            Center(
+              child: Text(
+                'This user has no recipes yet.',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ),
           ],
         ),
       ),
