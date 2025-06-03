@@ -291,240 +291,267 @@ class _RecipeScreenState extends State<RecipeScreen> {
   return true;
 }
 
+  double get _averageRating {
+  if (_comments.isEmpty) return 0.0;
+  final sum = _comments.fold<int>(0, (acc, c) => acc + c.rating);
+  return sum / _comments.length;
+}
+
+int get _commentsCount => _comments.length;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Cała zawartość scrollowana
           widget._recipe != null
               ? CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 400.0,
-                    pinned: true,
-
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(32),
-                          bottomRight: Radius.circular(32),
-                        ),
-                        child:
-                            widget._recipe!.photoUrl != null
-                                ? Image.network(
-                                  '${constatns.picsBucketUrl}/${widget._recipe!.photoUrl!}',
-                                  fit: BoxFit.cover,
-                                )
-                                : Image.asset(
-                                  'images/default_recipe_image.jpg',
-                                  fit: BoxFit.cover,
+                  slivers: [
+                    SliverAppBar(
+                      expandedHeight: 400.0,
+                      pinned: true,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(32),
+                                bottomRight: Radius.circular(32),
+                              ),
+                              child: widget._recipe!.photoUrl != null
+                                  ? Image.network(
+                                      '${constatns.picsBucketUrl}/${widget._recipe!.photoUrl!}',
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
+                                      'images/default_recipe_image.jpg',
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                            // Gwiazdki i liczba opinii w prawym dolnym rogu
+                            Positioned(
+                              right: 16,
+                              bottom: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                      ),
-                      title: null,
-                      centerTitle: true,
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 16),
-                          const Text(
-                            'Description:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          buildDescription(widget._recipe!.description),
-                          SizedBox(height: 16),
-                          const Text(
-                            'Ingredients:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text(
-                                'How many drinks?',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    StarRating(
+                                      rating: _averageRating.round(),
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '(${_commentsCount})',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: _drinkCount > 1
-                                    ? () => setState(() => _drinkCount--)
-                                    : null,
-                              ),
-                              Text(
-                                '$_drinkCount',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => setState(() => _drinkCount++),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ...buildIngredientCards(),
-                          buildStepsList(),
-                          buildCommentsList(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              )
-              : Center(child: Text('Recipe not found')),
-          SafeArea(
-            child: Container(
-              alignment: Alignment.topCenter,
-              padding: const EdgeInsets.only(top: 12),
-              child: SizedBox(
-                height: 48, // wysokość nagłówka, możesz dostosować
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Wyśrodkowany napis
-                    Center(
-                      child: Text(
-                        widget._recipe?.name ?? '',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 8,
-                              color: Colors.black54,
-                              offset: Offset(0, 2),
                             ),
                           ],
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
+                        title: null,
+                        centerTitle: true,
                       ),
                     ),
-                    // Ikony po prawej
-                    Positioned(
-                      right: 0,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              _isFavourite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: Colors.black,
+                    // DODAJEMY TU nowy SliverToBoxAdapter z nazwą drinka i przyciskami
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        child: Row(
+                          children: [
+                            // Nazwa drinka
+                            Expanded(
+                              child: Text(
+                                widget._recipe?.name ?? '',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 8,
+                                      color: Colors.black54,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            tooltip:
-                                _isFavourite
-                                    ? 'Remove from favorites'
-                                    : 'Add to favorites',
-                            onPressed:
-                                _checkingStatus
-                                    ? null
-                                    : () async {
-                                      if (_isFavourite) {
-                                        await _favouriteDrinkRepository
-                                            .removeFavouriteDrink(
-                                              userId,
-                                              widget._recipe!.id,
+                            // Ikony po prawej
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    _isFavourite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: Colors.black,
+                                  ),
+                                  tooltip: _isFavourite
+                                      ? 'Remove from favorites'
+                                      : 'Add to favorites',
+                                  onPressed: _checkingStatus
+                                      ? null
+                                      : () async {
+                                          if (_isFavourite) {
+                                            await _favouriteDrinkRepository
+                                                .removeFavouriteDrink(
+                                                  userId,
+                                                  widget._recipe!.id,
+                                                );
+                                            setState(() => _isFavourite = false);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Removed from favorites!',
+                                                ),
+                                              ),
                                             );
-                                        setState(() => _isFavourite = false);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Removed from favorites!',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        await _favouriteDrinkRepository
-                                            .addFavouriteDrink(
-                                              userId,
-                                              widget._recipe!.id,
+                                          } else {
+                                            await _favouriteDrinkRepository
+                                                .addFavouriteDrink(
+                                                  userId,
+                                                  widget._recipe!.id,
+                                                );
+                                            setState(() => _isFavourite = true);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Added to favorites!',
+                                                ),
+                                              ),
                                             );
-                                        setState(() => _isFavourite = true);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Added to favorites!',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    },
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              _isInHistory
-                                  ? Icons.local_bar
-                                  : Icons.local_bar_outlined,
-                              color: Colors.black,
+                                          }
+                                        },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    _isInHistory
+                                        ? Icons.local_bar
+                                        : Icons.local_bar_outlined,
+                                    color: Colors.black,
+                                  ),
+                                  tooltip: _isInHistory
+                                      ? 'Remove from history'
+                                      : 'Mark as drunk',
+                                  onPressed: _checkingStatus
+                                      ? null
+                                      : () async {
+                                          if (_isInHistory) {
+                                            await _historyRepository
+                                                .removeRecipeFromHistory(
+                                                  userId,
+                                                  widget._recipe!.id,
+                                                );
+                                            setState(() => _isInHistory = false);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Removed from history!',
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            await _historyRepository
+                                                .addRecipesToHistory(
+                                                  userId,
+                                                  widget._recipe!.id,
+                                                );
+                                            setState(() => _isInHistory = true);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Marked as drunk!'),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                ),
+                              ],
                             ),
-                            tooltip:
-                                _isInHistory
-                                    ? 'Remove from history'
-                                    : 'Mark as drunk',
-                            onPressed:
-                                _checkingStatus
-                                    ? null
-                                    : () async {
-                                      if (_isInHistory) {
-                                        await _historyRepository
-                                            .removeRecipeFromHistory(
-                                              userId,
-                                              widget._recipe!.id,
-                                            );
-                                        setState(() => _isInHistory = false);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Removed from history!',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        await _historyRepository
-                                            .addRecipesToHistory(
-                                              userId,
-                                              widget._recipe!.id,
-                                            );
-                                        setState(() => _isInHistory = true);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Marked as drunk!'),
-                                          ),
-                                        );
-                                      }
-                                    },
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    // ...reszta SliverToBoxAdapter z opisem, składnikami itd...
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 16),
+                            const Text(
+                              'Description:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            buildDescription(widget._recipe!.description),
+                            SizedBox(height: 16),
+                            const Text(
+                              'Ingredients:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Text(
+                                  'How many drinks?',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 12),
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: _drinkCount > 1
+                                      ? () => setState(() => _drinkCount--)
+                                      : null,
+                                ),
+                                Text(
+                                  '$_drinkCount',
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => setState(() => _drinkCount++),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...buildIngredientCards(),
+                            buildStepsList(),
+                            buildCommentsList(),
+                          ],
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
+                )
+              : Center(child: Text('Recipe not found')),
         ],
       ),
       floatingActionButton: Column(
