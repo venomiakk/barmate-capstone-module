@@ -1,3 +1,4 @@
+import 'package:barmate/constants.dart' as constants;
 import 'package:barmate/model/account_model.dart';
 import 'package:barmate/model/category_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -6,7 +7,9 @@ import 'package:barmate/repositories/category_repository.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
 import 'package:barmate/repositories/account_repository.dart';
 import 'package:barmate/repositories/tag_repository.dart';
+import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/public_user_profile_screen.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/screens/user_screens/search_filter_screen.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +21,7 @@ import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:flutter_cache/flutter_cache.dart' as cache;
+import 'package:barmate/constants.dart' as constatns;
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -277,47 +281,56 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-Widget _buildIngredientCard(Ingredient ingredient) {
-  return InkWell(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => IngredientScreen(
-            ingredientId: ingredient.id,
-            isFromStash: true,
+  Widget _buildIngredientCard(Ingredient ingredient) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => IngredientScreen(
+                  ingredientId: ingredient.id,
+                  isFromStash: true,
+                ),
           ),
+        );
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            _buildCardImage(ingredient.photo_url),
+            const SizedBox(width: 16),
+            _buildCardInfo(ingredient),
+            const SizedBox(width: 8),
+            _buildIngredientActions(ingredient),
+          ],
         ),
-      );
-    },
-    child: Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          _buildCardImage(ingredient.photo_url),
-          const SizedBox(width: 16),
-          _buildCardInfo(ingredient),
-          const SizedBox(width: 8),
-          _buildIngredientActions(ingredient),
-        ],
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Stack _buildCardImage(String? photoUrl) {
+    print(photoUrl);
     return Stack(
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            photoUrl ?? 'images/przyklad.png',
-            width: 104,
-            height: 104,
-            fit: BoxFit.cover,
-          ),
+          child:
+              (photoUrl?.isNotEmpty ?? false)
+                  ? Image.network(
+                    '${constants.picsBucketUrl}/${photoUrl!}',
+                    width: 104,
+                    height: 104,
+                    fit: BoxFit.cover,
+                  )
+                  : Image.asset(
+                    'images/unavailable-image.jpg',
+                    width: 104,
+                    height: 104,
+                    fit: BoxFit.cover,
+                  ),
         ),
         _buildImageGradientOverlay(),
       ],
@@ -403,20 +416,46 @@ Widget _buildIngredientCard(Ingredient ingredient) {
     );
   }
 
-  Card _buildRecipeCard(Recipe recipe) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          _buildCardImage(recipe.photoUrl),
-          const SizedBox(width: 16),
-          _buildCardInfo(recipe),
-          const SizedBox(width: 8),
-          _buildRecipeActions(recipe),
-        ],
+  Widget _buildRecipeCard(Recipe recipe) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => RecipeScreen(
+                  recipe: recipe,
+                ),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            _buildCardImage(recipe.photoUrl),
+            const SizedBox(width: 16),
+            _buildCardInfo(recipe),
+            const SizedBox(width: 8),
+            _buildRecipeActions(recipe),
+          ],
+        ),
       ),
     );
+    // return Card(
+    //   elevation: 3,
+    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    //   child: Row(
+    //     children: [
+    //       _buildCardImage(recipe.photoUrl),
+    //       const SizedBox(width: 16),
+    //       _buildCardInfo(recipe),
+    //       const SizedBox(width: 8),
+    //       _buildRecipeActions(recipe),
+    //     ],
+    //   ),
+    // );
   }
 
   Column _buildRecipeActions(Recipe recipe) {
@@ -448,7 +487,7 @@ Widget _buildIngredientCard(Ingredient ingredient) {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
-            _buildCardImage("images/user-picture.png"),
+            _buildCardImage(account.avatar),
             const SizedBox(width: 16),
             _buildCardInfo(account),
             const SizedBox(width: 8),
