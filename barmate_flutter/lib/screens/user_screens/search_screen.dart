@@ -285,7 +285,7 @@ Widget _buildIngredientCard(Ingredient ingredient) {
         MaterialPageRoute(
           builder: (context) => IngredientScreen(
             ingredientId: ingredient.id,
-            isFromStash: false,
+            isFromStash: true,
           ),
         ),
       );

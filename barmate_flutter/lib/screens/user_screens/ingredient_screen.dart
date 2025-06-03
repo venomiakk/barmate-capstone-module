@@ -6,6 +6,7 @@ import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 
 class IngredientScreen extends StatefulWidget {
   final int ingredientId;
@@ -101,7 +102,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(22),
                   child: AspectRatio(
-                    aspectRatio: 3 / 2,
+                    aspectRatio: 4 / 3,
                     child: (ingredient.photo_url?.isNotEmpty ?? false)
                         ? Image.network(ingredient.photo_url!, fit: BoxFit.cover)
                         : Image.asset('images/przyklad.png', fit: BoxFit.cover),
@@ -172,7 +173,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                         ],
                       );
                     },
@@ -198,19 +199,71 @@ class _IngredientScreenState extends State<IngredientScreen> {
                     }
 
                     final drinks = snapshot.data!;
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemCount: drinks.length,
-                      itemBuilder: (context, index) => Card(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            drinks[index].name,
-                            style: theme.textTheme.bodyLarge,
-                          ),
+                    return SizedBox(
+                      height: 220,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: drinks.length,
+                          itemBuilder: (context, index) {
+                            final drink = drinks[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RecipeScreen(recipe: drink),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                elevation: 5,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                margin: const EdgeInsets.only(right: 12),
+                                child: Container(
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(15),
+                                          topRight: Radius.circular(15),
+                                        ),
+                                        child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
+                                            ? Image.network(
+                                                drink.photoUrl!,
+                                                height: 160,  // większe zdjęcie
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.asset(
+                                                'images/przyklad.png',
+                                                height: 160,
+                                                fit: BoxFit.cover,
+                                              ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                        child: Text(
+                                          drink.name,
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );
@@ -225,4 +278,3 @@ class _IngredientScreenState extends State<IngredientScreen> {
     );
   }
 }
-
