@@ -349,29 +349,58 @@ Future<void> _updateAmount(int newAmount) async {
                             final stash = stashSnapshot.data;
                             final currentAmount = stash?.amount ?? 0;
 
-                            return Column(
-                              children: [
-                                Text('In stash:', style: theme.textTheme.titleMedium),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      '$currentAmount ${ingredient.unit}',
-                                      style: theme.textTheme.titleMedium,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      tooltip: 'Edytuj ilość',
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () {
-                                        _showEditAmountDialog(ingredient, currentAmount);
-                                      },
-                                    ),
-                                  ],
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Card(
+                                elevation: 3,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                const SizedBox(height: 20),
-                              ],
+                                color: Colors.grey.shade100.withOpacity(0.6),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.inventory_2_rounded, color: Colors.black54),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'In your stash',
+                                              style: theme.textTheme.titleMedium?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.black87,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '$currentAmount ${ingredient.unit}',
+                                              style: theme.textTheme.headlineSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 24,
+                                                color: Colors.black,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: 'Edit amount',
+                                        icon: const Icon(Icons.edit, color: Colors.black87),
+                                        onPressed: () {
+                                          _showEditAmountDialog(ingredient, currentAmount);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             );
                           },
                         ),
@@ -389,12 +418,12 @@ Future<void> _updateAmount(int newAmount) async {
                             return const Center(child: CircularProgressIndicator());
                           }
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Text('Brak drinków dla tego składnika.');
+                            return const Text('No drinks which contains:');
                           }
 
                           final drinks = snapshot.data!;
                           return SizedBox(
-                            height: 220,
+                            height: 230,
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: ListView.builder(
@@ -411,53 +440,66 @@ Future<void> _updateAmount(int newAmount) async {
                                         ),
                                       );
                                     },
-                                    child: Card(
-                                      elevation: 5,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15),
-                                      ),
+                                    child: Container(
+                                      width: 140,
                                       margin: const EdgeInsets.only(right: 12),
-                                      child: Container(
-                                        width: 140,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: const BorderRadius.only(
-                                                topLeft: Radius.circular(15),
-                                                topRight: Radius.circular(15),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(15),
+                                            child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
+                                                ? Image.network(
+                                                    '${constants.picsBucketUrl}/${drink.photoUrl!}',
+                                                    height: 230,
+                                                    width: 140,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Image.asset(
+                                                    'images/przyklad.png',
+                                                    height: 230,
+                                                    width: 140,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.bottomCenter,
+                                            child: Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.5),
+                                                borderRadius: const BorderRadius.vertical(
+                                                  bottom: Radius.circular(15),
+                                                ),
                                               ),
-                                              child: (drink.photoUrl != null && drink.photoUrl!.isNotEmpty)
-                                                  ? Image.network(
-                                                      '${constants.picsBucketUrl}/${drink.photoUrl!}',
-                                                      height: 160,
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                  : Image.asset(
-                                                      'images/przyklad.png',
-                                                      height: 160,
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                                               child: Text(
                                                 drink.name,
-                                                style: const TextStyle(fontWeight: FontWeight.bold),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 2,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
                                                 textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   );
-                                },
+                                }
                               ),
                             ),
                           );
