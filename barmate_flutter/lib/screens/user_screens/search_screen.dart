@@ -185,8 +185,6 @@ class _SearchPageState extends State<SearchPage> {
                             children:
                                 defaultValues.map((value) {
                                   return ChoiceChip(
-                                  
-                                    selectedColor: Color(0xffD897FD),
                                     label: Text('$value ${ingredient.unit}'),
                                     selected: counter == value,
                                     onSelected: (_) {
