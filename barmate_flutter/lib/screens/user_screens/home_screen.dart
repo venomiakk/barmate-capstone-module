@@ -3,6 +3,7 @@ import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/collection_repository.dart';
+import 'package:barmate/screens/user_screens/add_recipe.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +53,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Action for the floating action button
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>  AddRecipeScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

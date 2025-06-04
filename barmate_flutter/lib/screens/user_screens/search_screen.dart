@@ -13,6 +13,7 @@ import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/screens/user_screens/search_filter_screen.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/model/ingredient_model.dart';
@@ -24,7 +25,8 @@ import 'package:flutter_cache/flutter_cache.dart' as cache;
 import 'package:barmate/constants.dart' as constatns;
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final bool? isFromAddRecipe;
+  const SearchPage({super.key, this.isFromAddRecipe = false});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -60,173 +62,187 @@ class _SearchPageState extends State<SearchPage> {
 
   String searchText = '';
 
+  late final bool _isFromAddRecipe;
+
   @override
   void initState() {
     super.initState();
-    _loadIngredients();
-    _loadRecipes();
-    _loadAccounts();
-    filters.addAll([
-      {'Ingredients': true},
-      {'Recipes': true},
-      {'Users': true},
-    ]);
-    _loadTags();
-    _loadCategories();
+    _isFromAddRecipe = widget.isFromAddRecipe ?? false;
+    if (_isFromAddRecipe) {
+      _loadIngredients();
+      filters.addAll([
+        {'Ingredients': true},
+        {'Recipes': false},
+        {'Users': false},
+      ]);
+      _loadTags();
+      _loadCategories();
+    } else {
+      _loadIngredients();
+      _loadRecipes();
+      _loadAccounts();
+      filters.addAll([
+        {'Ingredients': true},
+        {'Recipes': true},
+        {'Users': true},
+      ]);
+      _loadTags();
+      _loadCategories();
+    }
   }
 
-  Future<void> _showAddToDialog(
-  Ingredient ingredient,
-  String destination,
-) async {
-  int counter = ingredient.unit == 'ml'
-      ? 500
-      : ingredient.unit == 'g'
-          ? 1000
-          : 1;
+  Future<Map<String, dynamic>?> _showAddToDialog(
+    Ingredient ingredient,
+    String destination,
+  ) async {
+    int counter;
+    List<int> defaultValues;
+    if (_isFromAddRecipe) {
+      counter =
+          ingredient.unit == 'ml'
+              ? 50
+              : ingredient.unit == 'g'
+              ? 10
+              : 1;
 
-  List<int> defaultValues = ingredient.unit == 'ml'
-      ? [100, 330, 500, 700, 1000, 2000]
-      : ingredient.unit == 'g'
-          ? [100, 200, 500, 750, 1000, 1500]
-          : [1, 2, 3, 5, 10, 20];
+      defaultValues =
+          ingredient.unit == 'ml'
+              ? [10, 20, 40, 50, 60, 100]
+              : ingredient.unit == 'g'
+              ? [1, 2, 5, 10, 15, 20]
+              : [1, 2, 3, 4, 6, 8];
+    } else {
+      counter =
+          ingredient.unit == 'ml'
+              ? 500
+              : ingredient.unit == 'g'
+              ? 1000
+              : 1;
 
-  TextEditingController controller =
-      TextEditingController(text: counter.toString());
+      defaultValues =
+          ingredient.unit == 'ml'
+              ? [100, 330, 500, 700, 1000, 2000]
+              : ingredient.unit == 'g'
+              ? [100, 200, 500, 750, 1000, 1500]
+              : [1, 2, 3, 5, 10, 20];
+    }
 
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: SizedBox(
-                    width: 350,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 10),
-                        Text(
-                          'Amount (${ingredient.unit})',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: controller,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Enter amount',
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              counter = int.tryParse(value) ?? counter;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 10,
-                          children: defaultValues.map((value) {
-                            return ChoiceChip(
-                              label: Text('$value ${ingredient.unit}'),
-                              selected: counter == value,
-                              onSelected: (_) {
-                                setState(() {
-                                  counter = value;
-                                  controller.text = value.toString();
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (destination == 'shopping list') {
-                              _addToShoppingList(ingredient.id, counter);
-                            } else {
-                              _addToStash(ingredient.id, counter);
-                            }
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+    TextEditingController controller = TextEditingController(
+      text: counter.toString(),
+    );
+
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: SizedBox(
+                      width: ingredient.unit == 'ml' ? 350 : ingredient.unit == 'leaves' ? 400 : 300,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 10),
+                          Text(
+                            'Amount (${ingredient.unit})',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          child: Text(
-                            'Add to $destination',
-                            style: const TextStyle(fontSize: 16),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Enter amount',
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                counter = int.tryParse(value) ?? counter;
+                              });
+                            },
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 10,
+                            children:
+                                defaultValues.map((value) {
+                                  return ChoiceChip(
+                                    label: Text('$value ${ingredient.unit}'),
+                                    selected: counter == value,
+                                    onSelected: (_) {
+                                      setState(() {
+                                        counter = value;
+                                        controller.text = value.toString();
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (destination == 'shopping list') {
+                                _addToShoppingList(ingredient.id, counter);
+                                Navigator.of(context).pop();
+                              } else if (destination == 'stash') {
+                                _addToStash(ingredient.id, counter);
+                                Navigator.of(context).pop();
+                              } else if (destination == 'recipe') {
+                                logger.d(
+                                  'Returning ingredient: $ingredient and amount: $counter',
+                                );
+                                Navigator.of(context).pop({
+                                  'ingredient': ingredient,
+                                  'amount': counter,
+                                });
+                              }
+                            },
+
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Add to $destination',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    },
-  );
-}
-
-
-  Row _buildCounterRow(
-    int counter,
-    int minValue,
-    int maxValue,
-    StateSetter setState,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.remove),
-          iconSize: 32.0,
-          onPressed: () {
-            setState(() {
-              if (this.counter > minValue) this.counter--;
-            });
-          },
-        ),
-        Text(
-          '${this.counter}',
-          style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-        ),
-        IconButton(
-          icon: const Icon(Icons.add),
-          iconSize: 32.0,
-          onPressed: () {
-            setState(() {
-              if (this.counter < maxValue) this.counter++;
-            });
-          },
-        ),
-      ],
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
+    return result;
   }
 
   @override
@@ -257,6 +273,13 @@ class _SearchPageState extends State<SearchPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         children: [
+          if (_isFromAddRecipe)
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
           Expanded(
             child: SearchBar(
               hintText: 'Search',
@@ -297,6 +320,7 @@ class _SearchPageState extends State<SearchPage> {
               filters: filters,
               categories: categories,
               tags: tags,
+              isFromAddRecipe: _isFromAddRecipe,
             ),
       ),
     );
@@ -353,7 +377,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Stack _buildCardImage(String? photoUrl) {
-    print(photoUrl);
     return Stack(
       children: [
         ClipRRect(
@@ -442,19 +465,40 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Column _buildIngredientActions(Ingredient ingredient) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.add, size: 30),
-          onPressed: () => _showAddToDialog(ingredient, 'stash'),
-        ),
-        IconButton(
-          icon: const Icon(Icons.shopping_cart, size: 26),
-          onPressed: () => _showAddToDialog(ingredient, 'shopping list'),
-        ),
-      ],
-    );
+    if (_isFromAddRecipe) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.add, size: 30),
+            onPressed: () async {
+              final result = await _showAddToDialog(ingredient, 'recipe');
+
+              if (result != null) {
+                Navigator.pop(context, {
+                  'ingredient': result['ingredient'],
+                  'amount': result['amount'],
+                });
+              }
+            },
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.add, size: 30),
+            onPressed: () => _showAddToDialog(ingredient, 'stash'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart, size: 26),
+            onPressed: () => _showAddToDialog(ingredient, 'shopping list'),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildRecipeCard(Recipe recipe) {
@@ -462,12 +506,7 @@ class _SearchPageState extends State<SearchPage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder:
-                (context) => RecipeScreen(
-                  recipe: recipe,
-                ),
-          ),
+          MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
         );
       },
       child: Card(

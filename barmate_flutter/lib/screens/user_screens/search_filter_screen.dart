@@ -4,11 +4,13 @@ class SearchFilterScreen extends StatefulWidget {
   final List<Map<String, bool>> filters;
   final List<Map<String, bool>> categories;
   final List<Map<String, bool>> tags;
+  final bool? isFromAddRecipe;
 
   const SearchFilterScreen({
     required this.filters,
     required this.categories,
     required this.tags,
+    this.isFromAddRecipe = false,
     super.key,
   });
 
@@ -20,36 +22,40 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   late List<Map<String, bool>> filters;
   late List<Map<String, bool>> categories;
   late List<Map<String, bool>> tags;
+  late bool isFromAddRecipe;
 
   @override
   void initState() {
     super.initState();
+    isFromAddRecipe = widget.isFromAddRecipe ?? false;
 
     if (widget.filters.every((filter) => filter.values.first)) {
       filters =
-        widget.filters.map((filter) => {filter.keys.first: false}).toList();
+          widget.filters.map((filter) => {filter.keys.first: false}).toList();
     } else {
-      filters = widget.filters
-          .map((filter) => {filter.keys.first: filter.values.first})
-          .toList();
+      filters =
+          widget.filters
+              .map((filter) => {filter.keys.first: filter.values.first})
+              .toList();
     }
-    
+
     if (widget.categories.every((category) => category.values.first)) {
       categories =
-        widget.categories.map((category) => {category.keys.first: false}).toList();
+          widget.categories
+              .map((category) => {category.keys.first: false})
+              .toList();
     } else {
-      categories = widget.categories
-          .map((category) => {category.keys.first: category.values.first})
-          .toList();
+      categories =
+          widget.categories
+              .map((category) => {category.keys.first: category.values.first})
+              .toList();
     }
 
     if (widget.tags.every((tag) => tag.values.first)) {
-      tags =
-        widget.tags.map((tag) => {tag.keys.first: false}).toList();
+      tags = widget.tags.map((tag) => {tag.keys.first: false}).toList();
     } else {
-      tags = widget.tags
-          .map((tag) => {tag.keys.first: tag.values.first})
-          .toList();
+      tags =
+          widget.tags.map((tag) => {tag.keys.first: tag.values.first}).toList();
     }
   }
 
@@ -87,66 +93,72 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     return ChoiceChip(
                       label: Text(filter.keys.first),
                       selected: filter.values.first,
-                      onSelected: (selected) {
-                        setState(() {
-                          filter[filter.keys.first] = selected;
-                          if (filter.keys.first == 'Ingredients' && !(selected)) {
-                            for (var category in categories) {
-                              category[category.keys.first] = false;
-                            }
-                          }
-                          if (filter.keys.first == 'Recipes' && !(selected)) {
-                            for (var tag in tags) {
-                              tag[tag.keys.first] = false;
-                            }
-                          }
-                        });
-                      },
+                      onSelected:
+                          (isFromAddRecipe &&
+                                  filter.keys.first != 'Ingredients')
+                              ? null
+                              : (selected) {
+                                setState(() {
+                                  filter[filter.keys.first] = selected;
+                                  if (filter.keys.first == 'Ingredients' &&
+                                      !(selected)) {
+                                    for (var category in categories) {
+                                      category[category.keys.first] = false;
+                                    }
+                                  }
+                                  if (filter.keys.first == 'Recipes' &&
+                                      !(selected)) {
+                                    for (var tag in tags) {
+                                      tag[tag.keys.first] = false;
+                                    }
+                                  }
+                                });
+                              },
                     );
                   }).toList(),
             ),
-            if(filters[0].values.first)...[
-            const SizedBox(height: 8),
-            const Text(
-              'Select ingredients categories:',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 4),
-            Wrap(
-              spacing: 8.0,
-              children:
-                  categories.map((category) {
-                    return ChoiceChip(
-                      label: Text(category.keys.first),
-                      selected: category.values.first,
-                      onSelected: (selected) {
-                        setState(() {
-                          category[category.keys.first] = selected;
-                        });
-                      },
-                    );
-                  }).toList(),
-            ),
+            if (filters[0].values.first) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Select ingredients categories:',
+                style: TextStyle(fontSize: 18),
+              ),
+              SizedBox(height: 4),
+              Wrap(
+                spacing: 8.0,
+                children:
+                    categories.map((category) {
+                      return ChoiceChip(
+                        label: Text(category.keys.first),
+                        selected: category.values.first,
+                        onSelected: (selected) {
+                          setState(() {
+                            category[category.keys.first] = selected;
+                          });
+                        },
+                      );
+                    }).toList(),
+              ),
             ],
-            if(filters[1].values.first)...[
-            const SizedBox(height: 8),
-            const Text('Select tags:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 4),
-            Wrap(
-              spacing: 8.0,
-              children:
-                  tags.map((tag) {
-                    return ChoiceChip(
-                      label: Text(tag.keys.first),
-                      selected: tag.values.first,
-                      onSelected: (selected) {
-                        setState(() {
-                          tag[tag.keys.first] = selected;
-                        });
-                      },
-                    );
-                  }).toList(),
-            ),
+            if (filters[1].values.first) ...[
+              const SizedBox(height: 8),
+              const Text('Select tags:', style: TextStyle(fontSize: 18)),
+              SizedBox(height: 4),
+              Wrap(
+                spacing: 8.0,
+                children:
+                    tags.map((tag) {
+                      return ChoiceChip(
+                        label: Text(tag.keys.first),
+                        selected: tag.values.first,
+                        onSelected: (selected) {
+                          setState(() {
+                            tag[tag.keys.first] = selected;
+                          });
+                        },
+                      );
+                    }).toList(),
+              ),
             ],
             const SizedBox(height: 8),
             Row(
