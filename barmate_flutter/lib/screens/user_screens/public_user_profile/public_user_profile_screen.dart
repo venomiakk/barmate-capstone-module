@@ -1,5 +1,6 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
+import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_favorite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_user_info_widget.dart';
 import 'package:flutter/material.dart';
@@ -155,10 +156,36 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
             ),
 
             // TODO: Add users drniks
-            Center(
-              child: Text(
-                'This user has no recipes yet.',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            // Center(
+            //   child: Text(
+            //     'This user has no recipes yet.',
+            //     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            //   ),
+            // ),
+            SizedBox(
+              height: 170,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: SizedBox(
+                      width: 120,
+                      child: DrinkCardWidget(
+                        drink: Drink(
+                          id: 999,
+                          recipeId: 999,
+                          name: "My Bloody Mary",
+                          imageUrl:
+                              "bloody_mary.jpg", // Użyje domyślnego obrazka
+                        ),
+                        onTap: () {
+                          logger.d("Custom recipe tapped");
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

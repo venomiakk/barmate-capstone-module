@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class PublicDrink {
   final int id;
@@ -18,11 +19,7 @@ class PublicDrinkCardWidget extends StatelessWidget {
   final PublicDrink drink;
   final VoidCallback? onTap;
 
-  const PublicDrinkCardWidget({
-    super.key,
-    required this.drink,
-    this.onTap,
-  });
+  const PublicDrinkCardWidget({super.key, required this.drink, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -46,16 +43,18 @@ class PublicDrinkCardWidget extends StatelessWidget {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: drink.imageUrl.isNotEmpty
-                    ? Image.network(
-                        drink.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, error, _) => Image.asset(
-                          'images/przyklad.png',
+                child:
+                    drink.imageUrl.isNotEmpty
+                        ? Image.network(
+                          '${constants.picsBucketUrl}/${drink.imageUrl}',
                           fit: BoxFit.cover,
-                        ),
-                      )
-                    : Image.asset('images/przyklad.png', fit: BoxFit.cover),
+                          errorBuilder:
+                              (ctx, error, _) => Image.asset(
+                                'images/przyklad.png',
+                                fit: BoxFit.cover,
+                              ),
+                        )
+                        : Image.asset('images/przyklad.png', fit: BoxFit.cover),
               ),
             ),
 

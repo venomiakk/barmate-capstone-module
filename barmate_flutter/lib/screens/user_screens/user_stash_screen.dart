@@ -4,7 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
-
+import 'package:barmate/constants.dart' as constants;
 
 class UserStashScreen extends StatefulWidget {
   const UserStashScreen({super.key});
@@ -145,11 +145,11 @@ class _UserStashScreenState extends State<UserStashScreen> {
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text("Wyczyść"),
+                      child: const Text("Clear"),
                     ),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Pokaż wyniki"),
+                      child: const Text("Show Results"),
                     ),
                   ],
                 ),
@@ -187,7 +187,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
           IconButton(
             icon: Icon(isSearchPanelVisible ? Icons.close : Icons.search),
             tooltip:
-                isSearchPanelVisible ? 'Zamknij filtr' : 'Szukaj / filtruj',
+                isSearchPanelVisible ? 'Close Filter' : 'Search / Filter',
             onPressed: () {
               setState(() {
                 if (isSearchPanelVisible) {
@@ -202,14 +202,14 @@ class _UserStashScreenState extends State<UserStashScreen> {
 
           IconButton(
             icon: const Icon(Icons.share),
-            tooltip: 'Udostępnij stash',
+            tooltip: 'Share your stash',
             onPressed: _shareStash,
           ),
           IconButton(
             icon: Icon(
               sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
             ),
-            tooltip: 'Sortuj ilość',
+            tooltip: 'Sort by amount',
             onPressed: () {
               setState(() {
                 sortAscending = !sortAscending;
@@ -229,7 +229,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: _deleteSelectedIngredients,
-              tooltip: 'Usuń zaznaczone',
+              tooltip: 'Remove selected ingredients',
             ),
         ],
       ),
@@ -340,7 +340,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
     });
 
     if (filteredGrouped.isEmpty) {
-      return const Center(child: Text("Brak wyników."));
+      return const Center(child: Text("No ingredients found"));
     }
 
     return ListView(
@@ -430,15 +430,16 @@ class _UserStashScreenState extends State<UserStashScreen> {
         if (isDeleteMode) {
           _toggleSelection(entry.ingredientId);
         } else {
-Navigator.push(
-  context,
-  MaterialPageRoute(
-        builder: (_) => IngredientScreen(
-      ingredientId: entry.ingredientId,
-      isFromStash: true,
-    ),
-  ),
-);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => IngredientScreen(
+                    ingredientId: entry.ingredientId,
+                    isFromStash: true,
+                  ),
+            ),
+          );
         }
       },
       child: Container(
@@ -465,7 +466,18 @@ Navigator.push(
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset('images/przyklad.png', fit: BoxFit.cover),
+                child:
+                    entry.photoUrl.isNotEmpty
+                        ? Image.network(
+                          '${constants.picsBucketUrl}/${entry.photoUrl}',
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (ctx, error, _) => Image.asset(
+                                'images/przyklad.png',
+                                fit: BoxFit.cover,
+                              ),
+                        )
+                        : Image.asset('images/przyklad.png', fit: BoxFit.cover),
               ),
             ),
             Align(

@@ -46,10 +46,7 @@ class PublicProfileRepository {
               'id': drink['id'],
               'name': drink['drink_name'],
               'recipeId': drink['recipe_id'],
-              'imageUrl':
-                  'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/drinkpics//sample_drink.jpg',
-              //TODO add imageUrl from Supabase
-              // 'imageUrl': drink['image_url'],
+              'imageUrl': drink['photo_url'],
             },
           )
           .toList();

@@ -3,6 +3,7 @@ import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
+import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart'; // Add this import
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:barmate/Utils/user_shared_preferences.dart';
@@ -173,11 +174,37 @@ class _UserPageState extends State<UserPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            //TODO : Add a widget to display user recipes
-            Center(
-              child: Text(
-                'You don\'t have any recipes yet.',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            // TODO: Replace with actual custom recipes
+            // Center(
+            //   child: Text(
+            //     'You don't have any recipes yet.',
+            //     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            //   ),
+            // ),
+            SizedBox(
+              height: 170,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: SizedBox(
+                      width: 120,
+                      child: DrinkCardWidget(
+                        drink: Drink(
+                          id: 999,
+                          recipeId: 999,
+                          name: "My Bloody Mary",
+                          imageUrl:
+                              "bloody_mary.jpg", // Użyje domyślnego obrazka
+                        ),
+                        onTap: () {
+                          logger.d("Custom recipe tapped");
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

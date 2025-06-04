@@ -1,8 +1,10 @@
 import 'package:barmate/model/shopping_list_model.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ShoppingListRepository {
   final SupabaseClient client = Supabase.instance.client;
+  final logger = Logger(printer: PrettyPrinter());
 
   Future<List<ShoppingList>> fetchUserShoppingList() async {
     try {
@@ -17,11 +19,9 @@ class ShoppingListRepository {
         'get_user_shopping_list',
         params: {'user_id_p': userId},
       );
-
+      // logger.d('Response from get_user_shopping_list: $response');
       if (response != null) {
-        return (response as List)
-            .map((e) => ShoppingList.fromJson(e))
-            .toList();
+        return (response as List).map((e) => ShoppingList.fromJson(e)).toList();
       }
     } catch (e) {
       print('Error fetching shopping list: $e');
@@ -49,13 +49,20 @@ class ShoppingListRepository {
     }
   }
 
-  Future<void> addToShoppingList(var userId, int ingredientId, int quantity) async {
+  Future<void> addToShoppingList(
+    var userId,
+    int ingredientId,
+    int quantity,
+  ) async {
     try {
-      final response = await client.rpc('add_to_shopping_list', params: {
-        'p_user_id': userId,
-        'p_ingredient_id': ingredientId,
-        'p_quantity': quantity,
-      });
+      final response = await client.rpc(
+        'add_to_shopping_list',
+        params: {
+          'p_user_id': userId,
+          'p_ingredient_id': ingredientId,
+          'p_quantity': quantity,
+        },
+      );
       if (response != null) {
         print('Added to shopping list: $response');
       }

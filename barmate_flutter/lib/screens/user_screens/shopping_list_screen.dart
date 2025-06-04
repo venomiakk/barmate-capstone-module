@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/model/shopping_list_model.dart';
-import 'package:barmate/repositories/stash_repository.dart'; 
+import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -44,11 +45,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     for (final item in shoppingList) {
       if (item.ingredientId > 1000000000000) continue;
 
-      await stashRepository.addToStash(
-        userId,
-        item.ingredientId,
-        item.amount,
-      );
+      await stashRepository.addToStash(userId, item.ingredientId, item.amount);
     }
 
     await repository.deleteFullShoppingList();
@@ -84,7 +81,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         actions: [
           IconButton(
             icon: Icon(isAddPanelVisible ? Icons.close : Icons.add),
-            tooltip: isAddPanelVisible ? 'Zamknij dodawanie' : 'Dodaj składnik',
+            tooltip: isAddPanelVisible ? 'Close' : 'Add Ingredient',
             onPressed: () {
               setState(() {
                 if (isAddPanelVisible) _controller.clear();
@@ -94,7 +91,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
           IconButton(
             icon: Icon(isSearchPanelVisible ? Icons.close : Icons.search),
-            tooltip: isSearchPanelVisible ? 'Zamknij wyszukiwanie' : 'Szukaj',
+            tooltip: isSearchPanelVisible ? 'Close' : 'Search Ingredient',
             onPressed: () {
               setState(() {
                 if (isSearchPanelVisible) searchQuery = '';
@@ -106,7 +103,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             icon: Icon(
               sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
             ),
-            tooltip: 'Sortuj ilość',
+            tooltip: 'Sort by Amount',
             onPressed: () {
               setState(() {
                 sortAscending = !sortAscending;
@@ -157,7 +154,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: SearchBar(
-                hintText: 'Wyszukaj składnik',
+                hintText: 'Search ingredient',
                 leading: const Icon(Icons.search),
                 onChanged: (value) {
                   setState(() {
@@ -177,7 +174,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           Expanded(
             child:
                 filteredList.isEmpty
-                    ? const Center(child: Text('Brak składników na liście.'))
+                    ? const Center(child: Text('The shopping list is empty.'))
                     : ListView.builder(
                       itemCount: filteredList.length,
                       itemBuilder: (context, index) {
@@ -200,11 +197,22 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.asset(
-                                        'images/przyklad.png',
-                                        width: 72,
-                                        height: 72,
-                                        fit: BoxFit.cover,
+                                      child: SizedBox(
+                                        width: 80, // Dodaj szerokość
+                                        height: 80, // Dodaj wysokość
+                                        child: item.photoUrl != null && item.photoUrl!.isNotEmpty
+                                            ? Image.network(
+                                                '${constants.picsBucketUrl}/${item.photoUrl}',
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (ctx, error, _) => Image.asset(
+                                                  'images/przyklad.png',
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                            : Image.asset(
+                                                'images/przyklad.png',
+                                                fit: BoxFit.cover,
+                                              ),
                                       ),
                                     ),
                                     Positioned(
@@ -267,7 +275,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                     item.ingredientId,
                                                   )
                                                   ? Colors.grey
-                                                  : Theme.of(context).textTheme.bodyLarge!.color,
+                                                  : Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyLarge!.color,
                                           decoration:
                                               checkedItems.contains(
                                                     item.ingredientId,
@@ -280,7 +290,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Ilość: ${item.amount}',
+                                        'Amount: ${item.amount} ${item.unit ?? ''}',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color:
@@ -288,7 +298,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                     item.ingredientId,
                                                   )
                                                   ? Colors.grey
-                                                  : Theme.of(context).textTheme.bodyLarge!.color,
+                                                  : Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyLarge!.color,
                                         ),
                                       ),
                                     ],
@@ -317,7 +329,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                       }
                                     });
 
-                                    if (checkedItems.length == shoppingList.length) {
+                                    if (checkedItems.length ==
+                                        shoppingList.length) {
                                       await _clearShoppingListAndAddToStash();
                                     }
                                   },

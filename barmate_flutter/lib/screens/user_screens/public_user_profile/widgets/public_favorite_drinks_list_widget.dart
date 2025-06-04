@@ -1,5 +1,7 @@
+import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_drink_card_widget.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -53,7 +55,7 @@ class _PublicFavouriteDrinksWidgetState
                 ),
               )
               .toList();
-
+      logger.d(drinks[0]);
       setState(() {
         favoriteDrinks.clear();
         favoriteDrinks.addAll(publicDrinks);
@@ -68,13 +70,15 @@ class _PublicFavouriteDrinksWidgetState
     }
   }
 
-  void viewDrinkDetails(PublicDrink drink) {
-    // TODO: Navigate to drink details screen
-    logger.w('TODO: Navigate to drink details for ${drink.recipeId}');
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => DrinkDetailsScreen(drinkId: drink.id)),
-    // );
+  Future<void> viewDrinkDetails(PublicDrink drink) async {
+    final recipe = await LoggedinUserProfileController().getRecipeById(
+      drink.recipeId,
+    );
+    // logger.d('Navigating to recipe details for: ${recipe.photoUrl}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
+    );
   }
 
   @override

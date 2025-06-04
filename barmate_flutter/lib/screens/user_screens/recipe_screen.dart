@@ -93,6 +93,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 ingredientName: json.ingredientName,
                 amount: json.amount,
                 categoryName: json.categoryName,
+                photoUrl: json.photoUrl, // Optional field
               ),
             );
           }
@@ -240,6 +241,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 ingredientName: '',
                 amount: 0,
                 categoryName: '',
+                photoUrl: '',
               ),
         );
         if (stash.ingredientId != -1 && ri.amount != null) {
@@ -287,6 +289,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
               ingredientName: '',
               amount: 0,
               categoryName: '',
+              photoUrl: '',
             ),
       );
       if (stash.ingredientId == -1 || ri.amount == null) return false;
@@ -699,6 +702,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   ingredientName: '',
                   amount: 0,
                   categoryName: '',
+                  photoUrl: '', // Optional field for photo URL
                 ),
           );
           final inStash = stash.ingredientId != -1;

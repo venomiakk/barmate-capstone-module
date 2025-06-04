@@ -145,7 +145,12 @@ class _SearchPageState extends State<SearchPage> {
                   Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: SizedBox(
-                      width: ingredient.unit == 'ml' ? 350 : ingredient.unit == 'leaves' ? 400 : 300,
+                      width:
+                          ingredient.unit == 'ml'
+                              ? 350
+                              : ingredient.unit == 'leaves'
+                              ? 400
+                              : 300,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -180,6 +185,8 @@ class _SearchPageState extends State<SearchPage> {
                             children:
                                 defaultValues.map((value) {
                                   return ChoiceChip(
+                                  
+                                    selectedColor: Color(0xffD897FD),
                                     label: Text('$value ${ingredient.unit}'),
                                     selected: counter == value,
                                     onSelected: (_) {
