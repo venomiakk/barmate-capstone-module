@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: <Widget>[
               const SizedBox(height: 30),
               collectionListWidget<Collection>(
-                title: 'Featured',
+                title: 'Featured Collections',
                 future: _collectionsList,
                 getName: (collection) => collection.name,
                 getPhotoUrl: (collection) => collection.photoUrl ?? '',
@@ -56,8 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Uniwersalny widget do wyświetlania karty przepisu
-  Widget recipeCard(Recipe recipe, BuildContext context) {
+    Widget recipeCard(Recipe recipe, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -65,72 +64,72 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
         );
       },
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Container(
-          width: 150,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(15),
-                  topRight: Radius.circular(15),
-                ),
-                child:
-                    recipe.photoUrl != null && recipe.photoUrl!.isNotEmpty
-                        ? Image.network(
-                          '${constatns.picsBucketUrl}/${recipe.photoUrl!}',
-                          height: 110,
-                          width: 150,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Image.asset(
-                                'images/default_recipe_image.jpg',
-                                height: 110,
-                                width: 150,
-                                fit: BoxFit.cover,
-                              ),
-                        )
-                        : Image.asset(
-                          'images/default_recipe_image.jpg',
-                          height: 110,
-                          width: 150,
-                          fit: BoxFit.cover,
-                        ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      recipe.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: (recipe.photoUrl != null && recipe.photoUrl!.isNotEmpty)
+                  ? Image.network(
+                      '${constatns.picsBucketUrl}/${recipe.photoUrl!}',
+                      height: 230,
+                      width: 140,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'images/default_recipe_image.jpg',
+                      height: 230,
+                      width: 140,
+                      fit: BoxFit.cover,
                     ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(15),
                   ),
                 ),
+                child: Text(
+                  recipe.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // Uniwersalny widget do wyświetlania kolekcji
-  Widget collectionListWidget<T>({
+    Widget collectionListWidget<T>({
     required String title,
     required Future<List<T>> future,
     required String Function(T) getName,
-    String? Function(T)? getPhotoUrl, // Dodane: funkcja do pobrania photo_url
+    String? Function(T)? getPhotoUrl,
     Recipe? Function(T)? getRecipe,
   }) {
     return FutureBuilder<List<T>>(
@@ -164,76 +163,78 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    // Jeśli getRecipe jest podany i zwraca Recipe, wyświetl kartę przepisu
+
                     if (getRecipe != null) {
                       final recipe = getRecipe(item);
                       if (recipe != null) {
                         return recipeCard(recipe, context);
                       }
                     }
-                    // Karta kolekcji z photo_url
+
                     final photoUrl = getPhotoUrl != null ? getPhotoUrl(item) : null;
-                    return Container(
-                      width: 150,
-                      margin: const EdgeInsets.only(right: 12.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Theme.of(context).colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                        // USUNIĘTO border
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(15),
-                              topRight: Radius.circular(15),
+                    final name = getName(item);
+
+                    return GestureDetector(
+                      onTap: () {
+                        // Możesz dodać tu akcję kliknięcia kolekcji
+                      },
+                      child: Container(
+                        width: 140,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                            child: photoUrl != null && photoUrl.isNotEmpty
-                                ? Image.network(
-                                    '${constatns.picsBucketUrl}/$photoUrl',
-                                    height: 110,
-                                    width: 150,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: (photoUrl != null && photoUrl.isNotEmpty)
+                                  ? Image.network(
+                                      '${constatns.picsBucketUrl}/$photoUrl',
+                                      height: 200,
+                                      width: 140,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
                                       'images/default_recipe_image.jpg',
-                                      height: 110,
-                                      width: 150,
+                                      height: 200,
+                                      width: 140,
                                       fit: BoxFit.cover,
                                     ),
-                                  )
-                                : Image.asset(
-                                    'images/default_recipe_image.jpg',
-                                    height: 110,
-                                    width: 150,
-                                    fit: BoxFit.cover,
+                            ),
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  borderRadius: const BorderRadius.vertical(
+                                    bottom: Radius.circular(15),
                                   ),
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                ),
                                 child: Text(
-                                  getName(item),
+                                  name,
                                   style: const TextStyle(
-                                    fontSize: 16,
+                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 15,
                                   ),
+                                  textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
