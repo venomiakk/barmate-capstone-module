@@ -1,3 +1,4 @@
+import 'package:barmate/Utils/groq_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -5,6 +6,10 @@ import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:barmate/constants.dart' as constants;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:barmate/screens/user_screens/generated_recipe_screen.dart';
+import 'package:barmate/model/recipe_model.dart';
 
 class UserStashScreen extends StatefulWidget {
   const UserStashScreen({super.key});
@@ -26,6 +31,10 @@ class _UserStashScreenState extends State<UserStashScreen> {
   bool sortAscending = true;
   List<String> availableCategories = [];
   bool isSearchPanelVisible = false;
+  final groqService = GroqService(
+  apiKey: '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',
+  endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+);
 
   @override
   void initState() {
@@ -186,8 +195,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
         actions: [
           IconButton(
             icon: Icon(isSearchPanelVisible ? Icons.close : Icons.search),
-            tooltip:
-                isSearchPanelVisible ? 'Close Filter' : 'Search / Filter',
+            tooltip: isSearchPanelVisible ? 'Close Filter' : 'Search / Filter',
             onPressed: () {
               setState(() {
                 if (isSearchPanelVisible) {
@@ -310,6 +318,69 @@ class _UserStashScreenState extends State<UserStashScreen> {
                   ],
                 ),
               ),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text("AI Recipe"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        onPressed: () async {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              content: Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text("Generating recipe using your stash..."),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          try {
+            final userId = Supabase.instance.client.auth.currentUser?.id;
+            if (userId == null) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("You must be logged in!")),
+              );
+              return;
+            }
+
+            final stash = await repository.fetchUserStash(userId);
+            final ingredients = stash.map((e) => e.ingredientName).toList();
+
+            // Użyj GroqService i odbierz już sparsowany JSON (Map)
+            final recipeJson = await groqService.generateRecipeFromIngredients(ingredients);
+
+            if (context.mounted) Navigator.pop(context);
+
+            if (recipeJson != null) {
+              final generatedRecipe = Recipe.fromJson(recipeJson);
+
+              if (context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GeneratedRecipeScreen(recipe: generatedRecipe),
+                  ),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Failed to generate recipe. Try again.")),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Error: $e")),
+            );
+          }
+        },
+      ),
     );
   }
 
