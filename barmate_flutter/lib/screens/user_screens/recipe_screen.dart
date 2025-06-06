@@ -9,6 +9,7 @@ import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
+import 'package:barmate/widgets/recipeWidgets/recipe_comments_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
 
@@ -39,6 +40,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _loadingComments = true;
   bool _loadingStash = true;
   String userId = '';
+  String userLogin = '';
   bool _isFavourite = false;
   bool _isInHistory = false;
   bool _checkingStatus = true;
@@ -57,6 +59,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   Future<void> _initializePrefs() async {
     final prefs = await UserPreferences.getInstance();
     userId = prefs.getUserId();
+    userLogin = prefs.getUserName(); // Dodaj pobieranie loginu
     setState(() {});
     _checkFavouriteAndHistory();
     _fetchUserStash();
@@ -581,7 +584,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           const SizedBox(height: 8),
                           ...buildIngredientCards(),
                           buildStepsList(),
-                          buildCommentsList(),
+                          BuildCommentsListWidget(
+                            comments: _comments,
+                            loading: _loadingComments,
+                          ),
                         ],
                       ),
                     ),
@@ -626,55 +632,53 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     },
           ),
           const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            onPressed: () {
-              if (userId.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('User not logged in!')),
-                );
-                return;
-              }
-              showDialog(
-                context: context,
-                barrierDismissible: true,
-                builder:
-                    (context) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Container(
-                            width: double.infinity,
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).dialogBackgroundColor,
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 24,
-                                  offset: Offset(0, 8),
-                                  color: Theme.of(
-                                    context,
-                                  ).shadowColor.withOpacity(0.2),
-                                ),
-                              ],
-                            ),
-                            child: buildAddCommentForm(
-                              recipeId: widget._recipe!.id,
-                              userId: userId,
-                              onSubmit: _recipeRepository.addCommentToRecipe,
-                              closeModal: () => Navigator.of(context).pop(),
-                            ),
+          if (!_loadingComments && !_comments.any((c) => c.userName == userLogin))
+            FloatingActionButton.extended(
+              onPressed: () {
+                if (userId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User not logged in!')),
+                  );
+                  return;
+                }
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).dialogBackgroundColor,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                blurRadius: 24,
+                                offset: Offset(0, 8),
+                                color: Theme.of(context).shadowColor.withOpacity(0.2),
+                              ),
+                            ],
+                          ),
+                          child: buildAddCommentForm(
+                            recipeId: widget._recipe!.id,
+                            userId: userId,
+                            onSubmit: _recipeRepository.addCommentToRecipe,
+                            closeModal: () => Navigator.of(context).pop(),
                           ),
                         ),
                       ),
                     ),
-              );
-            },
-            label: const Text('Add comment'),
-            icon: const Icon(Icons.add_comment),
-          ),
+                  ),
+                );
+              },
+              label: const Text('Add comment'),
+              icon: const Icon(Icons.add_comment),
+            ),
         ],
       ),
     );
@@ -1037,6 +1041,18 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         );
                         return;
                       }
+                      // Sprawdź, czy użytkownik już dodał komentarz
+                      final alreadyCommented = _comments.any(
+                        (c) => c.userName == userLogin,
+                      );
+                      if (alreadyCommented) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('You have already added a comment!'),
+                          ),
+                        );
+                        return;
+                      }
                       await onSubmit(
                         recipeId,
                         _photoUrlController.text,
@@ -1064,89 +1080,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 
-  Widget buildCommentsList() {
-    if (_loadingComments) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (_comments.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Text('No comments yet.'),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Comments:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        ..._comments.map(
-          (c) => Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            child: ListTile(
-              leading: StarRating(rating: c.rating, size: 20),
-              title: Text(c.userName),
-              subtitle: Text(c.comment),
-              trailing:
-                  c.photoUrl != null && c.photoUrl!.isNotEmpty
-                      ? Image.network(
-                        c.photoUrl!,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      )
-                      : null,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+ 
 }
 
-// Widget do wyboru gwiazdek
-class StarRating extends StatelessWidget {
-  final int rating;
-  final int maxRating;
-  final void Function(int)? onRatingChanged;
-  final double size;
-  final Color color;
 
-  const StarRating({
-    super.key,
-    required this.rating,
-    this.maxRating = 5,
-    this.onRatingChanged,
-    this.size = 28,
-    this.color = Colors.amber,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(maxRating, (index) {
-        final isFilled = index < rating;
-        return GestureDetector(
-          onTap:
-              onRatingChanged != null
-                  ? () => onRatingChanged!(index + 1)
-                  : null,
-          child: Icon(
-            isFilled ? Icons.star : Icons.star_border,
-            color: color,
-            size: size,
-          ),
-        );
-      }),
-    );
-  }
-}
 
 class RecipeIngredientDisplay {
   final Ingredient ingredient;
@@ -1162,18 +1099,6 @@ class RecipeSteps {
   RecipeSteps({required this.description, this.order});
 }
 
-class RecipeComment {
-  final String userName;
-  final String comment;
-  final int rating;
-  final String? photoUrl;
 
-  RecipeComment({
-    required this.userName,
-    required this.comment,
-    required this.rating,
-    this.photoUrl,
-  });
-}
 
 // Przykładowa lista komentarzy (zastąp pobieraniem z repozytorium)

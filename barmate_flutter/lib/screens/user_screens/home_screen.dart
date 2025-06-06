@@ -3,6 +3,7 @@ import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/collection_repository.dart';
+import 'package:barmate/screens/collection_screen.dart';
 import 'package:barmate/screens/user_screens/add_recipe.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';
@@ -175,20 +176,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-
-                    if (getRecipe != null) {
-                      final recipe = getRecipe(item);
-                      if (recipe != null) {
-                        return recipeCard(recipe, context);
-                      }
-                    }
-
                     final photoUrl = getPhotoUrl != null ? getPhotoUrl(item) : null;
                     final name = getName(item);
-
                     return GestureDetector(
                       onTap: () {
-                        // Możesz dodać tu akcję kliknięcia kolekcji
+                        if (item is Collection) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CollectionScreen(collection: item),
+                            ),
+                          );
+                        }
+                        // Możesz dodać inne typy jeśli chcesz obsłużyć inne przypadki
                       },
                       child: Container(
                         width: 140,

@@ -8,7 +8,8 @@ class Recipe {
   final List<Ingredient>? ingredients;
   final String? photoUrl;
   final List<TagModel>? tags;
-  final String? creatorId; // <--- Dodane pole
+  final String? creatorId; 
+  final int? strengthLevel;
 
   Recipe({
     required this.id,
@@ -17,7 +18,8 @@ class Recipe {
     this.ingredients,
     this.photoUrl,
     this.tags,
-    this.creatorId, // <--- Dodane pole
+    this.creatorId,
+    this.strengthLevel,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -38,7 +40,8 @@ class Recipe {
               .map((tag) => TagModel.fromMap(tag))
               .toList()
           : null,
-      creatorId: json['creator_id'], // <--- Dodane pole
+      creatorId: json['creator_id'], 
+      strengthLevel: json['strength_level'] as int?,
     );
   }
 

@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             colorScheme:
                 currentTheme ? ColorScheme.light() : ColorScheme.dark(),
-          ), // Use the current theme mode
+          ), 
           home: AuthGate(),
         );
       },
