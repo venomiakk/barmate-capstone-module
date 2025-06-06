@@ -1,4 +1,5 @@
 import 'package:barmate/Utils/groq_service.dart';
+import 'package:barmate/model/generated_recipe_model.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -323,48 +324,34 @@ class _UserStashScreenState extends State<UserStashScreen> {
         label: const Text("AI Recipe"),
         backgroundColor: Theme.of(context).colorScheme.primary,
         onPressed: () async {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              content: Row(
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text("Generating recipe using your stash..."),
-                  ),
-                ],
-              ),
-            ),
-          );
-
+          bool dialogShown = false;
           try {
-            final userId = Supabase.instance.client.auth.currentUser?.id;
-            if (userId == null) {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("You must be logged in!")),
-              );
-              return;
-            }
-
-            final stash = await repository.fetchUserStash(userId);
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                content: Row(
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text("Generating recipe using your stash..."),
+                    ),
+                  ],
+                ),
+              ),
+            );
+            dialogShown = true;
             final ingredients = stash.map((e) => e.ingredientName).toList();
-
-            // Użyj GroqService i odbierz już sparsowany JSON (Map)
             final recipeJson = await groqService.generateRecipeFromIngredients(ingredients);
-
-            if (context.mounted) Navigator.pop(context);
-
+            if (context.mounted && dialogShown) Navigator.pop(context);
             if (recipeJson != null) {
-              final generatedRecipe = Recipe.fromJson(recipeJson);
-
+              final generatedRecipe = GeneratedRecipeModel.fromJson(recipeJson);
               if (context.mounted) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GeneratedRecipeScreen(recipe: generatedRecipe),
+                    builder: (context) => GeneratedRecipeScreen(recipe: generatedRecipe), // <-- przekaż GeneratedRecipeModel
                   ),
                 );
               }
@@ -374,7 +361,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
               );
             }
           } catch (e) {
-            if (context.mounted) Navigator.pop(context);
+            if (context.mounted && dialogShown) Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Error: $e")),
             );

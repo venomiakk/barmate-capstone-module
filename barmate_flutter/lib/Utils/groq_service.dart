@@ -14,7 +14,6 @@ class GroqService {
 You are an expert bartender AI. Using ONLY the following ingredients: ${ingredients.join(', ')}, generate a creative cocktail recipe. 
 Return the result as a JSON object with the following fields:
 {
-  "id": 0,
   "name": "string",
   "description": "string",
   "ingredients": [
@@ -24,9 +23,12 @@ Return the result as a JSON object with the following fields:
       "unit": "string"
     }
   ],
-  "photoUrl": "",
-  "tags": [],
-  "creatorId": ""
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "string"
+    }
+  ]
 }
 - The 'ingredients' array should use only the provided ingredients.
 - The 'amount' and 'unit' fields should be realistic.
@@ -74,10 +76,8 @@ Return the result as a JSON object with the following fields:
               cleaned = cleaned.substring(0, cleaned.length - 3).trim();
             }
           }
-          print('Parsed JSON: $cleaned');
           return jsonDecode(cleaned);
         } catch (e) {
-          print(e);
           return null;
         }
       }
