@@ -17,7 +17,7 @@ flutter pub run build_runner build
 
 - [ ] Dodawanie artykułów
 - [ ] Generowanie raportów
-- [ ] Tworzenie kolekcji przepisów
+- [x] Tworzenie kolekcji przepisów
 
 **moderator**
 
