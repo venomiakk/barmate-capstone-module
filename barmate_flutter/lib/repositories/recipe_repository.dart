@@ -153,7 +153,7 @@ class RecipeRepository {
     int strength,
     List<TagModel> tags,
   ) async {
-    String publicUrl = 'drink_init.jpg';
+    String publicUrl = 'init_drink.jpg';
 
     if (photoUrl != null) {
       try {
@@ -184,7 +184,7 @@ class RecipeRepository {
       }
     }
 
-    print('Relative image path: $publicUrl');
+    logger.d('Relative image path: $publicUrl');
 
     int recipeId = 0;
 

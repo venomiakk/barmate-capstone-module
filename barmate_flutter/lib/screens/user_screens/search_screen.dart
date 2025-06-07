@@ -26,7 +26,8 @@ import 'package:barmate/constants.dart' as constatns;
 
 class SearchPage extends StatefulWidget {
   final bool? isFromAddRecipe;
-  const SearchPage({super.key, this.isFromAddRecipe = false});
+  final bool? isFromAddCollection;
+  const SearchPage({super.key, this.isFromAddRecipe = false, this.isFromAddCollection= false});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -63,33 +64,51 @@ class _SearchPageState extends State<SearchPage> {
   String searchText = '';
 
   late final bool _isFromAddRecipe;
+  late final bool _isFromAddCollection;
 
   @override
   void initState() {
     super.initState();
-    _isFromAddRecipe = widget.isFromAddRecipe ?? false;
-    if (_isFromAddRecipe) {
-      _loadIngredients();
-      filters.addAll([
-        {'Ingredients': true},
-        {'Recipes': false},
-        {'Users': false},
-      ]);
-      _loadTags();
-      _loadCategories();
-    } else {
-      _loadIngredients();
-      _loadRecipes();
-      _loadAccounts();
-      filters.addAll([
-        {'Ingredients': true},
-        {'Recipes': true},
-        {'Users': true},
-      ]);
-      _loadTags();
-      _loadCategories();
-    }
+    _initData();
   }
+
+  Future<void> _initData() async {
+  _isFromAddRecipe = widget.isFromAddRecipe ?? false;
+  _isFromAddCollection = widget.isFromAddCollection ?? false;
+
+  if (_isFromAddRecipe) {
+    await _loadIngredients();
+    filters.addAll([
+      {'Ingredients': true},
+      {'Recipes': false},
+      {'Users': false},
+    ]);
+     _loadTags();
+     _loadCategories();
+    _filterIngredients('');
+  } else if (_isFromAddCollection) {
+    await _loadRecipes();
+    filters.addAll([
+      {'Ingredients': false},
+      {'Recipes': true},
+      {'Users': false},
+    ]);
+     _loadTags();
+     _loadCategories();
+    _filterIngredients('');
+  } else {
+     _loadIngredients();
+     _loadRecipes();
+     _loadAccounts();
+    filters.addAll([
+      {'Ingredients': true},
+      {'Recipes': true},
+      {'Users': true},
+    ]);
+     _loadTags();
+     _loadCategories();
+  }
+}
 
   Future<Map<String, dynamic>?> _showAddToDialog(
     Ingredient ingredient,
@@ -279,7 +298,7 @@ class _SearchPageState extends State<SearchPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         children: [
-          if (_isFromAddRecipe)
+          if (_isFromAddRecipe || _isFromAddCollection)
             IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
@@ -327,6 +346,7 @@ class _SearchPageState extends State<SearchPage> {
               categories: categories,
               tags: tags,
               isFromAddRecipe: _isFromAddRecipe,
+              isFromAddCollection: _isFromAddCollection,
             ),
       ),
     );
@@ -355,6 +375,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildIngredientCard(Ingredient ingredient) {
     return InkWell(
       onTap: () {
+        if (!_isFromAddRecipe){
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -365,6 +386,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
           ),
         );
+        }
       },
       child: Card(
         elevation: 3,
@@ -511,10 +533,12 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildRecipeCard(Recipe recipe) {
     return InkWell(
       onTap: () {
+        if (!_isFromAddCollection){
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
         );
+        }
       },
       child: Card(
         elevation: 3,
@@ -533,6 +557,22 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Column _buildRecipeActions(Recipe recipe) {
+    if (_isFromAddCollection) {
+      return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.add, size: 30),
+          onPressed: () => (
+            Navigator.pop(context, {
+              'id': recipe.id,
+              'recipe': recipe,
+            })
+          ),
+        ),
+      ],
+    );
+    } else {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -542,6 +582,7 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ],
     );
+    }
   }
 
   _buildUserCard(Account account) {
@@ -579,6 +620,20 @@ class _SearchPageState extends State<SearchPage> {
       filteredIngredients.clear();
       filteredRecipes.clear();
       filteredAccounts.clear();
+
+      if (query.isEmpty && _isFromAddCollection){
+        for (final recipe in recipes) {
+          filteredItems.add(recipe);
+          filteredRecipes.add(recipe);
+        }
+        return;
+      }
+
+      if (query.isEmpty && _isFromAddRecipe) {
+        for (final ingredient in ingredients) {
+          filteredItems.add(ingredient);
+        }
+      }
 
       if (query.isEmpty) return;
 

@@ -5,12 +5,14 @@ class SearchFilterScreen extends StatefulWidget {
   final List<Map<String, bool>> categories;
   final List<Map<String, bool>> tags;
   final bool? isFromAddRecipe;
+  final bool? isFromAddCollection;
 
   const SearchFilterScreen({
     required this.filters,
     required this.categories,
     required this.tags,
     this.isFromAddRecipe = false,
+    this.isFromAddCollection = false,
     super.key,
   });
 
@@ -23,11 +25,13 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   late List<Map<String, bool>> categories;
   late List<Map<String, bool>> tags;
   late bool isFromAddRecipe;
+  late bool isFromAddCollection;
 
   @override
   void initState() {
     super.initState();
     isFromAddRecipe = widget.isFromAddRecipe ?? false;
+    isFromAddCollection = widget.isFromAddCollection ?? false;
 
     if (widget.filters.every((filter) => filter.values.first)) {
       filters =
@@ -95,7 +99,8 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                       selected: filter.values.first,
                       onSelected:
                           (isFromAddRecipe &&
-                                  filter.keys.first != 'Ingredients')
+                                  filter.keys.first != 'Ingredients' || isFromAddCollection &&
+                                  filter.keys.first != 'Recipes')
                               ? null
                               : (selected) {
                                 setState(() {
