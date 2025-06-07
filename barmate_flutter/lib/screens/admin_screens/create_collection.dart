@@ -282,12 +282,15 @@ class _CreateCollectionState extends State<CreateCollection> {
     );
 
     File? imageFile = imagePath != null ? File(imagePath!) : null;
+    DateTime? endDate = _endDateController.text.isNotEmpty
+        ? DateTime.tryParse(_endDateController.text)
+        : null;
 
     final result = collectionRepository.createCollection(
       _collectionNameController.text,
       _descriptionController.text,
       imageFile,
-      DateTime.parse(_endDateController.text),
+      endDate,
       recipes,
     );
 
@@ -298,6 +301,7 @@ class _CreateCollectionState extends State<CreateCollection> {
           backgroundColor: Colors.green,
         ),
       );
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

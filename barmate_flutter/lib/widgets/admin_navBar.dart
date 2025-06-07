@@ -21,12 +21,12 @@ class AdminNavbar extends StatelessWidget {
               label: 'Articles',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.assessment),
-              label: 'Reports',
-            ),
-            BottomNavigationBarItem(
               icon: Icon(Icons.collections_bookmark),
               label: 'Collections',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assessment),
+              label: 'Reports',
             ),
           ],
         );

@@ -12,7 +12,6 @@ class CollectionRepository {
   var logger = Logger(printer: PrettyPrinter());
   var uuid = Uuid();
 
-
   Future<List<Collection>> getCollections() async {
     try {
       final response = await client.rpc('get_all_collections');
@@ -31,14 +30,15 @@ class CollectionRepository {
     String name,
     String description,
     File? image,
-    DateTime endDate,
+    DateTime? endDate,
     List<Recipe> recipes,
   ) async {
-    String publicUrl = 'drink_init.jpg';
+    String publicUrl = 'init_collection.jpg';
 
     if (image != null) {
       try {
-        final fileName = 'collections/${uuid.v4()}.${image.path.split('.').last}';
+        final fileName =
+            'collections/${uuid.v4()}.${image.path.split('.').last}';
 
         await client.storage
             .from('barmatepics')
@@ -74,7 +74,7 @@ class CollectionRepository {
           'p_name': name,
           'p_image_url': publicUrl,
           'p_description': description,
-          'p_end_date': endDate.toIso8601String(),
+          'p_end_date': endDate?.toIso8601String(),
         },
       );
 
@@ -87,18 +87,17 @@ class CollectionRepository {
       return false;
     }
 
-    try{
+    try {
       for (var recipe in recipes) {
         final response = await client.rpc(
           'add_recipe_to_collection',
-          params: {
-            'p_recipe_id': recipe.id,
-            'p_collection_id': collectionId,
-          },
+          params: {'p_recipe_id': recipe.id, 'p_collection_id': collectionId},
         );
 
         if (response == null) {
-          logger.e('Failed to add recipe ${recipe.id} to collection $collectionId');
+          logger.e(
+            'Failed to add recipe ${recipe.id} to collection $collectionId',
+          );
           return false;
         }
       }
@@ -108,5 +107,24 @@ class CollectionRepository {
     }
 
     return true;
+  }
+
+  Future<void> deleteCollection(Collection collection) async {
+    if (collection.photoUrl != 'init_collection.jpg') {
+      logger.d('Deleting image at: ${collection.photoUrl}');
+      await client.storage.from('barmatepics').remove([collection.photoUrl!]);
+    }
+
+    try {
+      final response = await client.rpc(
+        'delete_collection',
+        params: {'p_id': collection.id},
+      );
+    
+      logger.d('Collection with ID: ${collection.id} deleted successfully');
+      
+    } catch (e) {
+      logger.e('Error deleting collection: $e');
+    }
   }
 }
