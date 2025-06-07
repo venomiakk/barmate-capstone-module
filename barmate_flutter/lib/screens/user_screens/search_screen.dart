@@ -205,6 +205,7 @@ class _SearchPageState extends State<SearchPage> {
                               labelText: 'Enter amount',
                             ),
                             onChanged: (value) {
+                              if (!mounted) return;
                               setState(() {
                                 counter = int.tryParse(value) ?? counter;
                               });
@@ -219,6 +220,7 @@ class _SearchPageState extends State<SearchPage> {
                                     label: Text('$value ${ingredient.unit}'),
                                     selected: counter == value,
                                     onSelected: (_) {
+                                      if (!mounted) return;
                                       setState(() {
                                         counter = value;
                                         controller.text = value.toString();
@@ -321,6 +323,7 @@ class _SearchPageState extends State<SearchPage> {
             child: SearchBar(
               hintText: 'Search',
               onChanged: (query) {
+                if (!mounted) return;
                 setState(() {
                   searchText = query;
                 });
@@ -628,6 +631,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _filterIngredients(String query) {
+    if (!mounted) return;
     setState(() {
       filteredItems.clear();
       filteredIngredients.clear();
