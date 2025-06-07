@@ -28,23 +28,27 @@ class _UserPageState extends State<UserPage> {
   String userId = '';
   String? userTitleFromPrefs;
   List<FavouriteDrink> favouriteDrinks = [];
+  bool _isLoading = true; // Dodaj tę zmienną
 
   @override
   void initState() {
     super.initState();
     _loadData();
-    _loadPrefsData(); // Dodaj tę metodę
+    _loadPrefsData();
   }
 
   // Dodaj tę metodę do ładowania danych z preferencji
   Future<void> _loadPrefsData() async {
     try {
       final prefs = await UserPreferences.getInstance();
-      setState(() {
-        userName = prefs.getUserName();
-        userId = prefs.getUserId();
-        userTitleFromPrefs = prefs.getUserTitle();
-      });
+      if (mounted) {
+        // Sprawdź, czy widget jest zamontowany przed aktualizacją stanu
+        setState(() {
+          userName = prefs.getUserName();
+          userId = prefs.getUserId();
+          userTitleFromPrefs = prefs.getUserTitle();
+        });
+      }
       // logger.i("""
       //   Username: $userName,
       //   ID: $userId,
@@ -61,7 +65,11 @@ class _UserPageState extends State<UserPage> {
     userBio = await _controller.getUserBio();
     userAvatarUrl = await _controller.loadUserAvatarUrl();
     favouriteDrinks = await _controller.loadUserFavouriteDrinks();
-    setState(() {});
+    if (mounted) {
+      setState(() {
+        _isLoading = false; // Zakończ ładowanie
+      });
+    }
   }
 
   void _navigateToEditProfile() async {
@@ -78,10 +86,13 @@ class _UserPageState extends State<UserPage> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        userTitle = result['title'];
-        userBio = result['bio'];
-      });
+      if (mounted) {
+        setState(() {
+          userTitle = result['title'];
+          userBio = result['bio'];
+        });
+        // Sprawdź, czy widget jest zamontowany przed aktualizacją stanu
+      }
 
       // Odśwież wszystkie dane po powrocie z ekranu ustawień
       await _loadData();
@@ -89,18 +100,33 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
+  // Dodaj tę metodę do klasy _UserPageState
+  Future<void> _refreshData() async {
+    logger.d("Refreshing profile data...");
+    try {
+      setState(() {
+        _isLoading = true; // Rozpocznij ładowanie przy odświeżaniu
+      });
+      await Future.wait([_loadData(), _loadPrefsData()]);
+      logger.d("Profile data refreshed successfully");
+    } catch (e) {
+      logger.e("Error refreshing profile data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Zakończ ładowanie nawet przy błędzie
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to refresh data'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Usuń bezpośrednie wywołania UserPreferences tutaj
-    // logger.i("""
-    //   UserPage build method called
-    //   Username: $userName,
-    //   ID: $userId,
-    //   Title: $userTitleFromPrefs
-    // """);
-    // Size size = MediaQuery.of(context).size;
-    // logger.i("Avatar URL: $userAvatarUrl");
-    // logger.i("favouriteDrinks: $favouriteDrinks");
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
@@ -137,77 +163,84 @@ class _UserPageState extends State<UserPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            UserProfileWidget(
-              username: userName,
-              userTitle: userTitle,
-              userBio: userBio,
-              userAvatarUrl: userAvatarUrl,
-              onSettingsTap: _navigateToEditProfile,
-            ),
-            const SizedBox(height: 24),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Warunkowo wyświetl loader lub UserProfileWidget
+              _isLoading
+                  ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(50.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                  : UserProfileWidget(
+                    username: userName,
+                    userTitle: userTitle,
+                    userBio: userBio,
+                    userAvatarUrl: userAvatarUrl,
+                    onSettingsTap: _navigateToEditProfile,
+                  ),
+              const SizedBox(height: 24),
 
-            // Add a title for the section
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Favorite Drinks',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Add a title for the section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Favorite Drinks',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
 
-            // Set a fixed height for the widget
-            SizedBox(
-              height: 170, // Adjust height as needed
-              child: FavouriteDrinksListWidget(initialDrinks: favouriteDrinks),
-            ),
-
-            const SizedBox(height: 24),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Your Recipes',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Set a fixed height for the widget
+              SizedBox(
+                height: 170,
+                child: FavouriteDrinksListWidget(
+                  initialDrinks: favouriteDrinks,
+                ),
               ),
-            ),
-            // TODO: Replace with actual custom recipes
-            // Center(
-            //   child: Text(
-            //     'You don't have any recipes yet.',
-            //     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            //   ),
-            // ),
-            SizedBox(
-              height: 170,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: SizedBox(
-                      width: 120,
-                      child: DrinkCardWidget(
-                        drink: Drink(
-                          id: 999,
-                          recipeId: 999,
-                          name: "My Bloody Mary",
-                          imageUrl:
-                              "bloody_mary.jpg", // Użyje domyślnego obrazka
+
+              const SizedBox(height: 24),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Your Recipes',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(
+                height: 170,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 120,
+                        child: DrinkCardWidget(
+                          drink: Drink(
+                            id: 999,
+                            recipeId: 999,
+                            name: "My Bloody Mary",
+                            imageUrl:
+                                "bloody_mary.jpg", // Użyje domyślnego obrazka
+                          ),
+                          onTap: () {
+                            logger.d("Custom recipe tapped");
+                          },
                         ),
-                        onTap: () {
-                          logger.d("Custom recipe tapped");
-                        },
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

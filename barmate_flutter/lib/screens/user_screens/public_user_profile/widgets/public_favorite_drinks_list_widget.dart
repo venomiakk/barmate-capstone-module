@@ -55,7 +55,6 @@ class _PublicFavouriteDrinksWidgetState
                 ),
               )
               .toList();
-      logger.d(drinks[0]);
       setState(() {
         favoriteDrinks.clear();
         favoriteDrinks.addAll(publicDrinks);

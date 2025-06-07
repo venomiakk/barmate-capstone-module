@@ -28,6 +28,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
   int? userId;
   String userUuid = '';
   bool isFollowing = false;
+  bool _isLoading = true; // Dodaj tę zmienną
 
   @override
   void initState() {
@@ -39,16 +40,49 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
     try {
       final userData = await _controller.getUserData(widget.userId);
       // TODO: implement follow loading
-      setState(() {
-        username = userData.username;
-        userTitle = userData.title;
-        userBio = userData.bio;
-        userAvatarUrl = userData.avatarUrl;
-        userId = userData.id;
-        userUuid = userData.uuid;
-      });
+      if (mounted) {
+        setState(() {
+          username = userData.username;
+          userTitle = userData.title;
+          userBio = userData.bio;
+          userAvatarUrl = userData.avatarUrl;
+          userId = userData.id;
+          userUuid = userData.uuid;
+          _isLoading = false; // Zakończ ładowanie
+        });
+      }
     } catch (e) {
       logger.e("Error loading user data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Zakończ ładowanie nawet przy błędzie
+        });
+      }
+    }
+  }
+
+  // Dodaj metodę odświeżania
+  Future<void> _refreshData() async {
+    logger.d("Refreshing public profile data...");
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      await _loadUserData();
+      logger.d("Public profile data refreshed successfully");
+    } catch (e) {
+      logger.e("Error refreshing public profile data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to refresh data'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -79,7 +113,6 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // logger.i("Building PublicUserProfileScreen for userId: ${widget.userId}");
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Profile"),
@@ -109,86 +142,97 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User profile information
-            PublicUserProfileWidget(
-              username: username,
-              userTitle: userTitle,
-              userBio: userBio,
-              userAvatarUrl: userAvatarUrl,
-              onFollowTap: _handleFollowTap,
-              isFollowing: isFollowing,
-            ),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // User profile information
+              _isLoading
+                  ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(50.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                  : PublicUserProfileWidget(
+                    username: username,
+                    userTitle: userTitle,
+                    userBio: userBio,
+                    userAvatarUrl: userAvatarUrl,
+                    onFollowTap: _handleFollowTap,
+                    isFollowing: isFollowing,
+                  ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Favorite drinks section
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Favorite Drinks',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            userUuid.isNotEmpty
-                ? PublicFavouriteDrinksWidget(
-                  userId: widget.userId,
-                  userUuid: userUuid,
-                )
-                : const Center(child: CircularProgressIndicator()),
-
-            const SizedBox(height: 24),
-
-            // User's feed/posts section
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                '$username\'s Recipes',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              // Favorite drinks section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Favorite Drinks',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : userUuid.isNotEmpty
+                  ? PublicFavouriteDrinksWidget(
+                    userId: widget.userId,
+                    userUuid: userUuid,
+                  )
+                  : const Center(child: CircularProgressIndicator()),
 
-            // TODO: Add users drniks
-            // Center(
-            //   child: Text(
-            //     'This user has no recipes yet.',
-            //     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            //   ),
-            // ),
-            SizedBox(
-              height: 170,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: SizedBox(
-                      width: 120,
-                      child: DrinkCardWidget(
-                        drink: Drink(
-                          id: 999,
-                          recipeId: 999,
-                          name: "My Bloody Mary",
-                          imageUrl:
-                              "bloody_mary.jpg", // Użyje domyślnego obrazka
-                        ),
-                        onTap: () {
-                          logger.d("Custom recipe tapped");
-                        },
+              const SizedBox(height: 24),
+
+              // User's feed/posts section
+              _isLoading
+                  ? const SizedBox.shrink() // Ukryj sekcję podczas ładowania
+                  : Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      username.endsWith('s')
+                          ? "$username' Recipes"
+                          : "$username's Recipes",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
+
+              _isLoading
+                  ? const SizedBox.shrink() // Ukryj listę podczas ładowania
+                  : SizedBox(
+                    height: 170,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: SizedBox(
+                            width: 120,
+                            child: DrinkCardWidget(
+                              drink: Drink(
+                                id: 999,
+                                recipeId: 999,
+                                name: "My Bloody Mary",
+                                imageUrl: "bloody_mary.jpg",
+                              ),
+                              onTap: () {
+                                logger.d("Custom recipe tapped");
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+            ],
+          ),
         ),
       ),
     );

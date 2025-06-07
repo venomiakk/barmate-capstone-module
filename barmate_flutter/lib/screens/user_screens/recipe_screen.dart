@@ -323,6 +323,27 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   SliverAppBar(
                     expandedHeight: 400.0,
                     pinned: true,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(
+                        8.0,
+                      ), // trochę paddingu, żeby nie był przy krawędzi
+                      child: Material(
+                        color: Colors.black.withOpacity(
+                          0.4,
+                        ), // szare półprzezroczyste tło
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0), // padding wokół ikony
+                            child: Icon(Icons.arrow_back, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
                     flexibleSpace: FlexibleSpaceBar(
                       background: Stack(
                         fit: StackFit.expand,
@@ -617,13 +638,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     ? null
                     : () async {
                       await _removeIngredientsFromStash();
-                      // Sprawdź czy już jest w historii zanim dodasz
-                      final alreadyInHistory = await _historyRepository
-                          .checkIfHisotryRecipesExists(
-                            userId,
-                            widget._recipe!.id,
-                          );
-                      if (!alreadyInHistory) {
+                      for (int i = 0; i < _drinkCount; i++) {
                         await _historyRepository.addRecipesToHistory(
                           userId,
                           widget._recipe!.id,
@@ -632,7 +647,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     },
           ),
           const SizedBox(height: 12),
-          if (!_loadingComments && !_comments.any((c) => c.userName == userLogin))
+          if (!_loadingComments &&
+              !_comments.any((c) => c.userName == userLogin))
             FloatingActionButton.extended(
               onPressed: () {
                 if (userId.isEmpty) {
@@ -644,36 +660,39 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 showDialog(
                   context: context,
                   barrierDismissible: true,
-                  builder: (context) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Container(
-                          width: double.infinity,
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).dialogBackgroundColor,
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [
-                              BoxShadow(
-                                blurRadius: 24,
-                                offset: Offset(0, 8),
-                                color: Theme.of(context).shadowColor.withOpacity(0.2),
+                  builder:
+                      (context) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              width: double.infinity,
+                              constraints: const BoxConstraints(maxWidth: 400),
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).dialogBackgroundColor,
+                                borderRadius: BorderRadius.circular(28),
+                                boxShadow: [
+                                  BoxShadow(
+                                    blurRadius: 24,
+                                    offset: Offset(0, 8),
+                                    color: Theme.of(
+                                      context,
+                                    ).shadowColor.withOpacity(0.2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: buildAddCommentForm(
-                            recipeId: widget._recipe!.id,
-                            userId: userId,
-                            onSubmit: _recipeRepository.addCommentToRecipe,
-                            closeModal: () => Navigator.of(context).pop(),
+                              child: buildAddCommentForm(
+                                recipeId: widget._recipe!.id,
+                                userId: userId,
+                                onSubmit: _recipeRepository.addCommentToRecipe,
+                                closeModal: () => Navigator.of(context).pop(),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
                 );
               },
               label: const Text('Add comment'),
@@ -735,7 +754,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   builder:
                       (context) => IngredientScreen(
                         ingredientId: ri.ingredient.id,
-                        isFromStash: false,
+                        isFromStash: true,
                       ),
                 ),
               );
@@ -1079,11 +1098,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
       },
     );
   }
-
- 
 }
-
-
 
 class RecipeIngredientDisplay {
   final Ingredient ingredient;
@@ -1098,7 +1113,3 @@ class RecipeSteps {
 
   RecipeSteps({required this.description, this.order});
 }
-
-
-
-// Przykładowa lista komentarzy (zastąp pobieraniem z repozytorium)
