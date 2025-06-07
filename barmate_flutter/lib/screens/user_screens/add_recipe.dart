@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/constants.dart' as constatns;
 import 'package:barmate/model/ingredient_model.dart';
+import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/model/tag_model.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
+import 'package:barmate/repositories/tag_repository.dart';
 import 'package:barmate/screens/user_screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,20 +22,31 @@ class AddRecipeScreen extends StatefulWidget {
 class _AddRecipeScreenState extends State<AddRecipeScreen> {
   var logger = Logger(printer: PrettyPrinter());
 
+  final TextEditingController _drinkNameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? imagePath;
   final List<Map<String, dynamic>> ingredients = [];
   final List<String> steps = [];
   List<Map<String, bool>> tags = [];
-  final Set<String> selectedTags = {};
+  final Set<TagModel> selectedTags = {};
   bool hasIce = false;
   int selectedStrength = 2;
 
-  get tagRepository => null;
+  String userId = '';
+
+  TagRepository tagRepository = TagRepository();
+  RecipeRepository recipeRepository = RecipeRepository();
 
   void initState() {
     super.initState();
     _loadTags();
+    _initializePrefs();
+  }
+
+  Future<void> _initializePrefs() async {
+    final prefs = await UserPreferences.getInstance();
+    userId = prefs.getUserId();
   }
 
   @override
@@ -84,13 +99,27 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
               const SizedBox(height: 16),
               // Name & Description
               TextFormField(
+                controller: _drinkNameController,
                 decoration: const InputDecoration(labelText: 'Drink Name'),
                 maxLength: 40,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a drink name';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
+                controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 3,
                 maxLength: 200,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               // Ingredients
@@ -378,7 +407,9 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
               const SizedBox(height: 24),
               // Submit button
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  _addRecipe();
+                },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
                 ),
@@ -406,6 +437,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     if (result != null) {
       setState(() {
         ingredients.add({
+          'id': result['ingredient'].id,
           'name': result['ingredient'].name,
           'amount': result['amount'],
           'unit': result['ingredient'].unit,
@@ -845,6 +877,78 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           },
         );
       },
+    );
+  }
+
+  Future<void> _addRecipe() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (ingredients.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingredient list cannot be empty.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (steps.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Steps list cannot be empty.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    selectedTags.clear();
+    for (String tag in tags
+        .where((tag) => tag.values.first)
+        .map((tag) => tag.keys.first)) {
+      TagModel tagModel = await tagRepository.getTagByName(tag);
+      if (tagModel != null) {
+        selectedTags.add(tagModel);
+      } else {
+        logger.w('Tag not found: $tag');
+      }
+    }
+
+    if (selectedTags.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one tag.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    logger.d('Adding recipe with the following data:' 
+        '\nName: ${_drinkNameController.text}'
+        '\nDescription: ${_descriptionController.text}'
+        '\nImage: $imagePath'
+        '\nIngredients: $ingredients'
+        '\nSteps: $steps'
+        '\nHas Ice: $hasIce'
+        '\nStrength: $selectedStrength'
+        '\nTags: ${selectedTags.map((tag) => tag.name).join(', ')}');
+
+    File? imageFile = imagePath != null ? File(imagePath!) : null;
+
+    recipeRepository.addRecipe(
+      _drinkNameController.text,
+      _descriptionController.text,
+      imageFile,
+      userId, 
+      ingredients,
+      steps,
+      hasIce,
+      selectedStrength,
+      selectedTags.toList(),
     );
   }
 }

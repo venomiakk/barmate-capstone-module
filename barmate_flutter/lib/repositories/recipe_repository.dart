@@ -1,12 +1,17 @@
+import 'dart:io';
 
-
+import 'package:uuid/uuid.dart';
+import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/model/tag_model.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RecipeRepository {
   var logger = Logger(printer: PrettyPrinter());
   final SupabaseClient client = Supabase.instance.client;
+
+  var uuid = Uuid();
 
   Future<List<Recipe>> getPopularRecipes() async {
     try {
@@ -101,7 +106,7 @@ class RecipeRepository {
     }
   }
 
-   Future<List<Map<String, dynamic>>?> fetchCommentsByRecipeId(
+  Future<List<Map<String, dynamic>>?> fetchCommentsByRecipeId(
     int recipeId,
   ) async {
     try {
@@ -137,5 +142,126 @@ class RecipeRepository {
     return null;
   }
 
- 
+  Future<void> addRecipe(
+    String name,
+    String description,
+    File? photoUrl,
+    String userId,
+    List<Map<String, dynamic>> ingredients,
+    List<String> steps,
+    bool hasIce,
+    int strength,
+    List<TagModel> tags,
+  ) async {
+    String publicUrl = 'drink_init.jpg';
+
+    if (photoUrl != null) {
+      try {
+        final fileName = 'drinks/${uuid.v4()}.${photoUrl.path.split('.').last}';
+
+        await client.storage
+            .from('barmatepics')
+            .upload(
+              fileName,
+              photoUrl,
+              fileOptions: const FileOptions(upsert: true),
+            );
+
+        // Pobierz pełny publiczny URL
+        final fullUrl = client.storage
+            .from('barmatepics')
+            .getPublicUrl(fileName);
+
+        // Wyodrębnij tylko ścieżkę względną z URL-a
+        final uri = Uri.parse(fullUrl);
+        final segments = uri.pathSegments;
+        publicUrl = segments
+            .skipWhile((s) => s != 'barmatepics')
+            .skip(1)
+            .join('/');
+      } catch (e) {
+        logger.e('Error uploading image: $e');
+      }
+    }
+
+    print('Relative image path: $publicUrl');
+
+    int recipeId = 0;
+
+    try {
+      final response = await client.rpc(
+        'add_recipe',
+        params: {
+          'p_name': name,
+          'p_photo_url': publicUrl,
+          'p_description': description,
+          'p_strength': strength,
+          'p_has_ice': hasIce,
+          'p_user_id': userId,
+        },
+      );
+
+      if (response != null) {
+        logger.d('Recipe added successfully: $response');
+        recipeId = response;
+      }
+    } catch (e) {
+      logger.e('Error adding recipe: $e');
+    }
+
+    try {
+      for (final ingredient in ingredients) {
+        final response = await client.rpc(
+          'add_ingredient_to_recipe',
+          params: {
+            'p_ingredient_id': ingredient['id'],
+            'p_recipe_id': recipeId,
+            'p_amount': ingredient['amount'],
+          },
+        );
+
+        if (response != null) {
+          logger.d('Ingredient added to recipe successfully: $response');
+        }
+      }
+    } catch (e) {
+      logger.e('Error adding ingredient to recipe: $e');
+    }
+
+    try {
+      int order = 1;
+      for (final step in steps) {
+        final response = await client.rpc(
+          'add_step_to_recipe',
+          params: {
+            'p_recipe_id': recipeId,
+            'p_order': order,
+            'p_description': step,
+          },
+        );
+
+        if (response != null) {
+          logger.d('Step added to recipe successfully: $response');
+          order++;
+        }
+      }
+    } catch (e) {
+      logger.e('Error adding step to recipe: $e');
+    }
+
+    try {
+      for (final tag in tags) {
+        final response = await client.rpc(
+          'add_tag_to_recipe',
+          params: {'p_recipe_id': recipeId, 'p_tag_id': tag.id},
+        );
+
+        if (response != null) {
+          logger.d('Tag added to recipe successfully: $response');
+        }
+      }
+    } catch (e) {
+      logger.e('Error adding tag to recipe: $e');
+    }
+  }
 }

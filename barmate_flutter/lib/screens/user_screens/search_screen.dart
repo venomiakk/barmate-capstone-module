@@ -210,6 +210,7 @@ class _SearchPageState extends State<SearchPage> {
                                   'Returning ingredient: $ingredient and amount: $counter',
                                 );
                                 Navigator.of(context).pop({
+                                  'id': ingredient.id,
                                   'ingredient': ingredient,
                                   'amount': counter,
                                 });
@@ -481,6 +482,7 @@ class _SearchPageState extends State<SearchPage> {
 
               if (result != null) {
                 Navigator.pop(context, {
+                  'id': result['id'],
                   'ingredient': result['ingredient'],
                   'amount': result['amount'],
                 });
