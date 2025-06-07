@@ -67,46 +67,71 @@ class _SearchPageState extends State<SearchPage> {
   late final bool _isFromAddCollection;
 
   @override
-  void initState() {
-    super.initState();
-    _initData();
-  }
+void initState() {
+  super.initState();
+  _initData();
+}
 
-  Future<void> _initData() async {
+Future<void> _initData() async {
   _isFromAddRecipe = widget.isFromAddRecipe ?? false;
   _isFromAddCollection = widget.isFromAddCollection ?? false;
 
   if (_isFromAddRecipe) {
     await _loadIngredients();
+    if (!mounted) return;
+
     filters.addAll([
       {'Ingredients': true},
       {'Recipes': false},
       {'Users': false},
     ]);
-     _loadTags();
-     _loadCategories();
+
+    await _loadTags();
+    if (!mounted) return;
+
+    await _loadCategories();
+    if (!mounted) return;
+
     _filterIngredients('');
+
   } else if (_isFromAddCollection) {
     await _loadRecipes();
+    if (!mounted) return;
+
     filters.addAll([
       {'Ingredients': false},
       {'Recipes': true},
       {'Users': false},
     ]);
-     _loadTags();
-     _loadCategories();
+
+    await _loadTags();
+    if (!mounted) return;
+
+    await _loadCategories();
+    if (!mounted) return;
+
     _filterIngredients('');
+
   } else {
-     _loadIngredients();
-     _loadRecipes();
-     _loadAccounts();
+    await _loadIngredients();
+    if (!mounted) return;
+
+    await _loadRecipes();
+    if (!mounted) return;
+
+    await _loadAccounts();
+    if (!mounted) return;
+
     filters.addAll([
       {'Ingredients': true},
       {'Recipes': true},
       {'Users': true},
     ]);
-     _loadTags();
-     _loadCategories();
+
+    await _loadTags();
+    if (!mounted) return;
+
+    await _loadCategories();
   }
 }
 
