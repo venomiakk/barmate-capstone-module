@@ -21,7 +21,7 @@ class AccountRepository {
       );
       if (response != null) {
         for (final account in response) {
-          account['title'] = await loggedinUserProfileRepository.fetchUserTitle(account['id']);
+          account['title'] = await loggedinUserProfileRepository.fetchUserTitle(account['userid']);
         }
         return (response as List)
             .map((e) => Account.fromJson(e as Map<String, dynamic>))
