@@ -142,7 +142,7 @@ class RecipeRepository {
     return null;
   }
 
-  Future<void> addRecipe(
+  Future<bool> addRecipe(
     String name,
     String description,
     File? photoUrl,
@@ -207,6 +207,7 @@ class RecipeRepository {
       }
     } catch (e) {
       logger.e('Error adding recipe: $e');
+      return false;
     }
 
     try {
@@ -226,6 +227,7 @@ class RecipeRepository {
       }
     } catch (e) {
       logger.e('Error adding ingredient to recipe: $e');
+      return false;
     }
 
     try {
@@ -247,6 +249,7 @@ class RecipeRepository {
       }
     } catch (e) {
       logger.e('Error adding step to recipe: $e');
+      return false;
     }
 
     try {
@@ -262,6 +265,9 @@ class RecipeRepository {
       }
     } catch (e) {
       logger.e('Error adding tag to recipe: $e');
+      return false;
     }
+
+    return true;
   }
 }

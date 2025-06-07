@@ -939,7 +939,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
     File? imageFile = imagePath != null ? File(imagePath!) : null;
 
-    recipeRepository.addRecipe(
+    final result = recipeRepository.addRecipe(
       _drinkNameController.text,
       _descriptionController.text,
       imageFile,
@@ -950,5 +950,22 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       selectedStrength,
       selectedTags.toList(),
     );
+
+    if (await result) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Recipe added successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context); // Close the screen after adding the recipe
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to add recipe. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
