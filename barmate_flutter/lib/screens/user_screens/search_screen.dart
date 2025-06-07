@@ -27,7 +27,11 @@ import 'package:barmate/constants.dart' as constatns;
 class SearchPage extends StatefulWidget {
   final bool? isFromAddRecipe;
   final bool? isFromAddCollection;
-  const SearchPage({super.key, this.isFromAddRecipe = false, this.isFromAddCollection= false});
+  const SearchPage({
+    super.key,
+    this.isFromAddRecipe = false,
+    this.isFromAddCollection = false,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -67,73 +71,56 @@ class _SearchPageState extends State<SearchPage> {
   late final bool _isFromAddCollection;
 
   @override
-void initState() {
-  super.initState();
-  _initData();
-}
-
-Future<void> _initData() async {
-  _isFromAddRecipe = widget.isFromAddRecipe ?? false;
-  _isFromAddCollection = widget.isFromAddCollection ?? false;
-
-  if (_isFromAddRecipe) {
-    await _loadIngredients();
-    if (!mounted) return;
-
-    filters.addAll([
-      {'Ingredients': true},
-      {'Recipes': false},
-      {'Users': false},
-    ]);
-
-    await _loadTags();
-    if (!mounted) return;
-
-    await _loadCategories();
-    if (!mounted) return;
-
-    _filterIngredients('');
-
-  } else if (_isFromAddCollection) {
-    await _loadRecipes();
-    if (!mounted) return;
-
-    filters.addAll([
-      {'Ingredients': false},
-      {'Recipes': true},
-      {'Users': false},
-    ]);
-
-    await _loadTags();
-    if (!mounted) return;
-
-    await _loadCategories();
-    if (!mounted) return;
-
-    _filterIngredients('');
-
-  } else {
-    await _loadIngredients();
-    if (!mounted) return;
-
-    await _loadRecipes();
-    if (!mounted) return;
-
-    await _loadAccounts();
-    if (!mounted) return;
-
-    filters.addAll([
-      {'Ingredients': true},
-      {'Recipes': true},
-      {'Users': true},
-    ]);
-
-    await _loadTags();
-    if (!mounted) return;
-
-    await _loadCategories();
+  void initState() {
+    super.initState();
+    _initData();
   }
-}
+
+  Future<void> _initData() async {
+    _isFromAddRecipe = widget.isFromAddRecipe ?? false;
+    _isFromAddCollection = widget.isFromAddCollection ?? false;
+
+    if (_isFromAddRecipe) {
+      await _loadIngredients();
+
+      filters.addAll([
+        {'Ingredients': true},
+        {'Recipes': false},
+        {'Users': false},
+      ]);
+
+      _loadTags();
+      _loadCategories();
+
+      _filterIngredients('');
+    } else if (_isFromAddCollection) {
+      await _loadRecipes();
+
+      filters.addAll([
+        {'Ingredients': false},
+        {'Recipes': true},
+        {'Users': false},
+      ]);
+
+      _loadTags();
+      _loadCategories();
+
+      _filterIngredients('');
+    } else {
+      _loadIngredients();
+      _loadRecipes();
+      _loadAccounts();
+
+      filters.addAll([
+        {'Ingredients': true},
+        {'Recipes': true},
+        {'Users': true},
+      ]);
+
+      _loadTags();
+      _loadCategories();
+    }
+  }
 
   Future<Map<String, dynamic>?> _showAddToDialog(
     Ingredient ingredient,
@@ -400,17 +387,17 @@ Future<void> _initData() async {
   Widget _buildIngredientCard(Ingredient ingredient) {
     return InkWell(
       onTap: () {
-        if (!_isFromAddRecipe){
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => IngredientScreen(
-                  ingredientId: ingredient.id,
-                  isFromStash: true,
-                ),
-          ),
-        );
+        if (!_isFromAddRecipe) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => IngredientScreen(
+                    ingredientId: ingredient.id,
+                    isFromStash: true,
+                  ),
+            ),
+          );
         }
       },
       child: Card(
@@ -558,11 +545,13 @@ Future<void> _initData() async {
   Widget _buildRecipeCard(Recipe recipe) {
     return InkWell(
       onTap: () {
-        if (!_isFromAddCollection){
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
-        );
+        if (!_isFromAddCollection) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecipeScreen(recipe: recipe),
+            ),
+          );
         }
       },
       child: Card(
@@ -584,29 +573,28 @@ Future<void> _initData() async {
   Column _buildRecipeActions(Recipe recipe) {
     if (_isFromAddCollection) {
       return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.add, size: 30),
-          onPressed: () => (
-            Navigator.pop(context, {
-              'id': recipe.id,
-              'recipe': recipe,
-            })
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.add, size: 30),
+            onPressed:
+                () => (Navigator.pop(context, {
+                  'id': recipe.id,
+                  'recipe': recipe,
+                })),
           ),
-        ),
-      ],
-    );
+        ],
+      );
     } else {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.local_bar, size: 30),
-          onPressed: () => (),
-        ),
-      ],
-    );
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.local_bar, size: 30),
+            onPressed: () => (),
+          ),
+        ],
+      );
     }
   }
 
@@ -646,7 +634,7 @@ Future<void> _initData() async {
       filteredRecipes.clear();
       filteredAccounts.clear();
 
-      if (query.isEmpty && _isFromAddCollection){
+      if (query.isEmpty && _isFromAddCollection) {
         for (final recipe in recipes) {
           filteredItems.add(recipe);
           filteredRecipes.add(recipe);
@@ -743,6 +731,7 @@ Future<void> _initData() async {
               )
               .toList();
 
+      if (!mounted) return;
       setState(() {
         ingredients.addAll(cachedIngredients);
       });
@@ -758,6 +747,7 @@ Future<void> _initData() async {
       cache.remember('ingredients', ingredientMaps, 120);
       cache.write('ingredients', ingredientMaps, 120);
 
+      if (!mounted) return;
       setState(() {
         ingredients.addAll(fetchedIngredients);
       });
@@ -777,6 +767,7 @@ Future<void> _initData() async {
               )
               .toList();
 
+      if (!mounted) return;
       setState(() {
         recipes.addAll(cachedRecipes);
       });
@@ -792,6 +783,7 @@ Future<void> _initData() async {
       cache.remember('recipes', recipeMaps, 120);
       cache.write('recipes', recipeMaps, 120);
 
+      if (!mounted) return;
       setState(() {
         recipes.addAll(fetchedRecipes);
       });
@@ -811,6 +803,7 @@ Future<void> _initData() async {
               )
               .toList();
 
+      if (!mounted) return;
       setState(() {
         accounts.addAll(cachedAccounts);
       });
@@ -826,6 +819,7 @@ Future<void> _initData() async {
       cache.remember('accounts', accountMaps, 120);
       cache.write('accounts', accountMaps, 120);
 
+      if (!mounted) return;
       setState(() {
         accounts.addAll(fetchedAccounts);
       });
@@ -845,6 +839,7 @@ Future<void> _initData() async {
               )
               .toList();
 
+      if (!mounted) return;
       setState(() {
         categories.addAll(cachedCategories.map((tag) => {tag.name: true}));
       });
@@ -860,6 +855,7 @@ Future<void> _initData() async {
       cache.remember('categories', categoriesMaps, 86400);
       cache.write('categories', categoriesMaps, 86400);
 
+      if (!mounted) return;
       setState(() {
         categories.addAll(fetchedCategories.map((tag) => {tag.name: true}));
       });
@@ -874,6 +870,7 @@ Future<void> _initData() async {
       final List<TagModel> cachedTags =
           cached.map<TagModel>((item) => TagModel.fromMap(item)).toList();
 
+      if (!mounted) return;
       setState(() {
         tags.addAll(cachedTags.map((tag) => {tag.name: true}));
       });
@@ -888,6 +885,7 @@ Future<void> _initData() async {
       cache.remember('tags', tagMaps, 86400);
       cache.write('tags', tagMaps, 86400);
 
+      if (!mounted) return;
       setState(() {
         tags.addAll(fetchedTags.map((tag) => {tag.name: true}));
       });
