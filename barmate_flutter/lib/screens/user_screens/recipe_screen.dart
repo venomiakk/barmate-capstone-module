@@ -507,6 +507,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     _checkingStatus
                                         ? null
                                         : () async {
+                                          // ?: po co to jest?
+                                          // *: poza tym nie działa...
                                           if (_isInHistory) {
                                             await _historyRepository
                                                 .removeRecipeFromHistory(

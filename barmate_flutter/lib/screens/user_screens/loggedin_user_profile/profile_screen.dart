@@ -1,9 +1,12 @@
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
+import 'package:barmate/controllers/public_profile_controller.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart'; // Add this import
+import 'package:barmate/screens/user_screens/profile/user_history.dart';
+import 'package:barmate/screens/user_screens/profile/widgets/users_recipes_list.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:barmate/Utils/user_shared_preferences.dart';
@@ -19,6 +22,8 @@ class _UserPageState extends State<UserPage> {
   var logger = Logger(printer: PrettyPrinter());
   final LoggedinUserProfileController _controller =
       LoggedinUserProfileController.create();
+  final PublicUserProfileController _publicController =
+      PublicUserProfileController.create();
   String? userTitle;
   String? userBio;
   String? userAvatarUrl;
@@ -102,13 +107,11 @@ class _UserPageState extends State<UserPage> {
 
   // Dodaj tę metodę do klasy _UserPageState
   Future<void> _refreshData() async {
-    logger.d("Refreshing profile data...");
     try {
       setState(() {
         _isLoading = true; // Rozpocznij ładowanie przy odświeżaniu
       });
       await Future.wait([_loadData(), _loadPrefsData()]);
-      logger.d("Profile data refreshed successfully");
     } catch (e) {
       logger.e("Error refreshing profile data: $e");
       if (mounted) {
@@ -132,10 +135,24 @@ class _UserPageState extends State<UserPage> {
         title: const Text("Profile"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite),
+            icon: const Icon(Icons.history),
             onPressed: () {
-              logger.d("Favorite/history button pressed");
-              // New page with favorite drinks and history
+              // Sprawdź czy userId nie jest pusty przed nawigacją
+              if (userId.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserHistoryScreen(userUuid: userId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('User data not loaded yet'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
             },
           ),
           IconButton(
@@ -155,7 +172,6 @@ class _UserPageState extends State<UserPage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              logger.d("Logout button pressed");
               _controller.logoutConfiramtionTooltip(context);
               // Logout functionality
               // Needs to ask for confirmation
@@ -206,39 +222,19 @@ class _UserPageState extends State<UserPage> {
               ),
 
               const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  'Your Recipes',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              if (!_isLoading) ...[
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    'Your Recipes',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: 170,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: SizedBox(
-                        width: 120,
-                        child: DrinkCardWidget(
-                          drink: Drink(
-                            id: 999,
-                            recipeId: 999,
-                            name: "My Bloody Mary",
-                            imageUrl:
-                                "bloody_mary.jpg", // Użyje domyślnego obrazka
-                          ),
-                          onTap: () {
-                            logger.d("Custom recipe tapped");
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  height: 170,
+                  child: UsersRecipesList(userId: userId, isCurrentUser: true),
                 ),
-              ),
+              ],
             ],
           ),
         ),

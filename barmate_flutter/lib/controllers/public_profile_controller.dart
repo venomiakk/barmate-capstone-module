@@ -1,4 +1,5 @@
 import 'package:barmate/model/public_profile_model.dart';
+import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/public_profile_repository.dart';
 import 'package:logger/logger.dart';
 
@@ -60,6 +61,17 @@ class PublicUserProfileController {
     } catch (e) {
       logger.e("Error fetching user favorite drinks: $e");
       throw Exception("Failed to fetch user favorite drinks");
+    }
+  }
+
+  Future<List<Recipe>> getUsersRecipes(String userId) async {
+    try {
+      List<Recipe> recipes =
+          await publicProfileRepository.fetchUsersRecipes(userId);
+      return recipes;
+    } catch (e) {
+      logger.e("Error fetching user's recipes: $e");
+      throw Exception("Failed to fetch user's recipes");
     }
   }
 }

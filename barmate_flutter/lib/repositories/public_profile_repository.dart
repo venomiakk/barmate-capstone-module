@@ -1,4 +1,5 @@
 import 'package:barmate/model/public_profile_model.dart';
+import 'package:barmate/model/recipe_model.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -52,6 +53,27 @@ class PublicProfileRepository {
           .toList();
     } catch (e) {
       logger.e("Error fetching user favorite drinks: $e");
+      return [];
+    }
+  }
+
+  Future<List<Recipe>> fetchUsersRecipes(String userId) async {
+    try {
+      final response = await client.rpc(
+        'get_users_recipes',
+        params: {'user_id': userId},
+      );
+
+      if (response == null || response.isEmpty) {
+        return [];
+      }
+
+      // Map the response to Recipe objects
+      return (response as List<dynamic>)
+          .map((recipe) => Recipe.fromJson(recipe))
+          .toList();
+    } catch (e) {
+      logger.e("Error fetching user's recipes: $e");
       return [];
     }
   }

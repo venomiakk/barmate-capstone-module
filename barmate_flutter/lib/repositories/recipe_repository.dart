@@ -270,4 +270,23 @@ class RecipeRepository {
 
     return true;
   }
+
+  Future<void> deleteRecipe(int recipeId, String photoUrl) async {
+    if (photoUrl != 'init_drink.jpg') {
+      await client.storage.from('barmatepics').remove([photoUrl]);
+    }
+    try {
+      final response = await client.rpc(
+        'remove_recipe',
+        params: {'p_recipe_id': recipeId},
+      );
+
+      if (response != null) {
+        logger.d('Recipe with ID: $recipeId deleted successfully');
+      }
+    } catch (e) {
+      logger.e('Error deleting recipe: $e');
+      throw Exception('Failed to delete recipe: $e');
+    }
+  }
 }
