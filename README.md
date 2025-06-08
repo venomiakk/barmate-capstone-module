@@ -15,7 +15,7 @@ flutter pub run build_runner build
 
 **administrator**
 
-- [ ] Dodawanie artykułów
+- [x] Dodawanie artykułów
 - [ ] Generowanie raportów
 - [x] Tworzenie kolekcji przepisów
 
