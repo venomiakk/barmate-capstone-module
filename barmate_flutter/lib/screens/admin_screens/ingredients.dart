@@ -39,7 +39,7 @@ class _AddIngredientState extends State<Ingredients> {
 @override
 Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(title: const Text('Collections')),
+    appBar: AppBar(title: const Text('Ingredients')),
     body: Center(
       child: SafeArea(
         child: Padding(

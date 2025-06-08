@@ -18,7 +18,7 @@ class AdminNavbar extends StatelessWidget {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.article),
-              label: 'Articles',
+              label: 'Ingredients',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.collections_bookmark),
