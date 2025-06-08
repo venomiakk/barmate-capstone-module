@@ -5,6 +5,7 @@ import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart'; // Add this import
+import 'package:barmate/screens/user_screens/profile/user_history.dart';
 import 'package:barmate/screens/user_screens/profile/widgets/users_recipes_list.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -106,13 +107,11 @@ class _UserPageState extends State<UserPage> {
 
   // Dodaj tę metodę do klasy _UserPageState
   Future<void> _refreshData() async {
-    logger.d("Refreshing profile data...");
     try {
       setState(() {
         _isLoading = true; // Rozpocznij ładowanie przy odświeżaniu
       });
       await Future.wait([_loadData(), _loadPrefsData()]);
-      logger.d("Profile data refreshed successfully");
     } catch (e) {
       logger.e("Error refreshing profile data: $e");
       if (mounted) {
@@ -136,10 +135,24 @@ class _UserPageState extends State<UserPage> {
         title: const Text("Profile"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite),
+            icon: const Icon(Icons.history),
             onPressed: () {
-              logger.d("Favorite/history button pressed");
-              // New page with favorite drinks and history
+              // Sprawdź czy userId nie jest pusty przed nawigacją
+              if (userId.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserHistoryScreen(userUuid: userId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('User data not loaded yet'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
             },
           ),
           IconButton(
@@ -159,7 +172,6 @@ class _UserPageState extends State<UserPage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              logger.d("Logout button pressed");
               _controller.logoutConfiramtionTooltip(context);
               // Logout functionality
               // Needs to ask for confirmation
