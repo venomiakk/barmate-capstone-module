@@ -1,6 +1,7 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart';
+import 'package:barmate/screens/user_screens/profile/widgets/users_recipes_list.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_favorite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_user_info_widget.dart';
 import 'package:flutter/material.dart';
@@ -208,27 +209,9 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                   ? const SizedBox.shrink() // Ukryj listę podczas ładowania
                   : SizedBox(
                     height: 170,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: SizedBox(
-                            width: 120,
-                            child: DrinkCardWidget(
-                              drink: Drink(
-                                id: 999,
-                                recipeId: 999,
-                                name: "My Bloody Mary",
-                                imageUrl: "bloody_mary.jpg",
-                              ),
-                              onTap: () {
-                                logger.d("Custom recipe tapped");
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: UsersRecipesList(
+                      userId: userUuid,
+                      isCurrentUser: false,
                     ),
                   ),
             ],
