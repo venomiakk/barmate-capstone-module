@@ -17,4 +17,18 @@ class CategoryRepository {
         .map((cr) => Category.fromMap(cr))
         .toList();
   }
+
+  Future<Category> getTagByName(String categoryName) async {
+    final response = await client
+        .from('ingredient_category')
+        .select()
+        .eq('name', categoryName)
+        .single();
+
+    if (response == null) {
+      throw Exception('Category not found');
+    }
+
+    return Category.fromMap(response);
+  }
 }

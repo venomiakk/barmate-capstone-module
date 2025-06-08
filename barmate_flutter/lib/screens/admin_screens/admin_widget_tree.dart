@@ -1,12 +1,12 @@
 import 'package:barmate/data/notifiers.dart';
-import 'package:barmate/screens/admin_screens/add_ingredient.dart';
 import 'package:barmate/screens/admin_screens/collections.dart';
 import 'package:barmate/screens/admin_screens/generate_raport.dart';
+import 'package:barmate/screens/admin_screens/ingredients.dart';
 import 'package:barmate/widgets/admin_navBar.dart';
 import 'package:flutter/material.dart';
 
 List<Widget> widgetList = [
-  AddIngredient(),
+  Ingredients(),
   Collections(),
   GenerateRaport(),
 ];
