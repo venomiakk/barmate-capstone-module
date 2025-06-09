@@ -365,7 +365,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
       ),
     );
-    _filterIngredients(searchText);
+    await _filterIngredients(searchText);
     logger.d('Filters $filters');
     logger.d('Categories $categories');
     logger.d('Tags $tags');
@@ -630,7 +630,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  void _filterIngredients(String query) {
+  Future<void> _filterIngredients(String query) async {
     if (!mounted) return;
     setState(() {
       filteredItems.clear();
@@ -638,21 +638,102 @@ class _SearchPageState extends State<SearchPage> {
       filteredRecipes.clear();
       filteredAccounts.clear();
 
+      bool isCategory = false;
+      bool isTag = false;
+
+      bool isEveryCategory = true;
+      //check if any category is true
+      for (dynamic category in categories) {
+        if (category.values.first) {
+          isCategory = true;
+        } else {
+          isEveryCategory = false;
+        }
+      }
+
+      if (isEveryCategory) {
+        isCategory = false;
+      }
+
+      bool isEveryTag = true;
+      for (dynamic tag in tags) {
+        if (tag.values.first) {
+          isTag = true;
+        } else {
+          isEveryTag = false;
+        }
+      }
+
+      if (isEveryTag) {
+        isTag = false;
+      }
+
       if (query.isEmpty && _isFromAddCollection) {
         for (final recipe in recipes) {
-          filteredItems.add(recipe);
-          filteredRecipes.add(recipe);
+          if (!isTag) {
+            filteredItems.add(recipe);
+            filteredRecipes.add(recipe);
+          } else {
+            for (final tagMap in tags) {
+              if (tagMap.values.first &&
+                  recipe.tags!.any(
+                    (recipeTag) => recipeTag.name == tagMap.keys.first,
+                  )) {
+                if (!filteredItems.contains(recipe)) {
+                  filteredRecipes.add(recipe);
+                }
+              }
+            }
+          }
         }
         return;
       }
 
       if (query.isEmpty && _isFromAddRecipe) {
         for (final ingredient in ingredients) {
-          filteredItems.add(ingredient);
+          if (isCategory) {
+            for (final categoryMap in categories) {
+              if (categoryMap.values.first &&
+                  ingredient.category == categoryMap.keys.first) {
+                filteredItems.add(ingredient);
+              }
+            }
+          } else {
+            filteredItems.add(ingredient);
+          }
         }
+        return;
       }
 
-      if (query.isEmpty) return;
+      if (query.isEmpty && !isTag && !isCategory) return;
+
+      if (query.isEmpty && isTag) {
+        for (final recipe in recipes) {
+          for (final tagMap in tags) {
+            if (tagMap.values.first &&
+                recipe.tags!.any(
+                  (recipeTag) => recipeTag.name == tagMap.keys.first,
+                )) {
+              if (!filteredItems.contains(recipe)) {
+              filteredItems.add(recipe);
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      if (query.isEmpty && isCategory) {
+        for (final ingredient in ingredients) {
+          for (final categoryMap in categories) {
+            if (categoryMap.values.first &&
+                ingredient.category == categoryMap.keys.first) {
+              filteredItems.add(ingredient);
+            }
+          }
+        }
+        return;
+      }
 
       final lowerQuery = query.toLowerCase();
 
