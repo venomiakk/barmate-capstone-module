@@ -60,16 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
           // Action for the floating action button
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) =>  AddRecipeScreen()),
+            MaterialPageRoute(builder: (context) => AddRecipeScreen()),
           );
         },
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         child: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }
 
-    Widget recipeCard(Recipe recipe, BuildContext context) {
+  Widget recipeCard(Recipe recipe, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -94,19 +95,20 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(15),
-              child: (recipe.photoUrl != null && recipe.photoUrl!.isNotEmpty)
-                  ? Image.network(
-                      '${constatns.picsBucketUrl}/${recipe.photoUrl!}',
-                      height: 230,
-                      width: 140,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      'images/default_recipe_image.jpg',
-                      height: 230,
-                      width: 140,
-                      fit: BoxFit.cover,
-                    ),
+              child:
+                  (recipe.photoUrl != null && recipe.photoUrl!.isNotEmpty)
+                      ? Image.network(
+                        '${constatns.picsBucketUrl}/${recipe.photoUrl!}',
+                        height: 230,
+                        width: 140,
+                        fit: BoxFit.cover,
+                      )
+                      : Image.asset(
+                        'images/default_recipe_image.jpg',
+                        height: 230,
+                        width: 140,
+                        fit: BoxFit.cover,
+                      ),
             ),
             Align(
               alignment: Alignment.bottomCenter,
@@ -138,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-    Widget collectionListWidget<T>({
+  Widget collectionListWidget<T>({
     required String title,
     required Future<List<T>> future,
     required String Function(T) getName,
@@ -176,7 +178,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    final photoUrl = getPhotoUrl != null ? getPhotoUrl(item) : null;
+                    final photoUrl =
+                        getPhotoUrl != null ? getPhotoUrl(item) : null;
                     final name = getName(item);
                     return GestureDetector(
                       onTap: () {
@@ -184,7 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => CollectionScreen(collection: item),
+                              builder:
+                                  (context) =>
+                                      CollectionScreen(collection: item),
                             ),
                           );
                         }
@@ -207,25 +212,29 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(15),
-                              child: (photoUrl != null && photoUrl.isNotEmpty)
-                                  ? Image.network(
-                                      '${constatns.picsBucketUrl}/$photoUrl',
-                                      height: 200,
-                                      width: 140,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.asset(
-                                      'images/default_recipe_image.jpg',
-                                      height: 200,
-                                      width: 140,
-                                      fit: BoxFit.cover,
-                                    ),
+                              child:
+                                  (photoUrl != null && photoUrl.isNotEmpty)
+                                      ? Image.network(
+                                        '${constatns.picsBucketUrl}/$photoUrl',
+                                        height: 200,
+                                        width: 140,
+                                        fit: BoxFit.cover,
+                                      )
+                                      : Image.asset(
+                                        'images/default_recipe_image.jpg',
+                                        height: 200,
+                                        width: 140,
+                                        fit: BoxFit.cover,
+                                      ),
                             ),
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.5),
                                   borderRadius: const BorderRadius.vertical(
@@ -299,5 +308,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-

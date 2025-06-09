@@ -330,16 +330,16 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           return FilterChip(
                             label: Text(
                               tagName,
-                              style: TextStyle(
-                                color:
-                                    true
-                                        ? Colors.white
-                                        : Colors.black, // dynamiczny kolor
-                              ),
+                              // style: TextStyle(
+                              //   color:
+                              //       true
+                              //           ? Colors.white
+                              //           : Colors.black, // dynamiczny kolor
+                              // ),
                             ),
                             selected: true,
-                            selectedColor: Colors.deepPurple,
-                            backgroundColor: Colors.grey[300],
+                            // selectedColor: Colors.deepPurple,
+                            // backgroundColor: Colors.grey[300],
                             onSelected: (_) {
                               setState(() {
                                 tag[tagName] = false;
@@ -365,7 +365,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           selectedStrength == 1 ? Colors.white : Colors.black,
                     ),
                     selected: selectedStrength == 1,
-                    selectedColor: Colors.purple[500],
+                    selectedColor: Colors.green[400],
                     onSelected: (_) {
                       setState(() {
                         selectedStrength = 1;
@@ -380,7 +380,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           selectedStrength == 2 ? Colors.white : Colors.black,
                     ),
                     selected: selectedStrength == 2,
-                    selectedColor: Colors.purple[700],
+                    selectedColor: Colors.deepOrange[400],
                     onSelected: (_) {
                       setState(() {
                         selectedStrength = 2;
@@ -395,7 +395,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           selectedStrength == 3 ? Colors.white : Colors.black,
                     ),
                     selected: selectedStrength == 3,
-                    selectedColor: Colors.purple[900],
+                    selectedColor: Colors.pink[500],
                     onSelected: (_) {
                       setState(() {
                         selectedStrength = 3;
@@ -617,19 +617,19 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               label: Text(
                                 tagName,
                                 style: TextStyle(
-                                  color:
-                                      isSelected
-                                          ? Colors.white
-                                          : Colors
-                                              .black, // dynamiczny kolor tekstu
+                                  // color:
+                                  //     isSelected
+                                  //         ? Colors.white
+                                  //         : Colors
+                                  //             .black, // dynamiczny kolor tekstu
                                 ),
                               ),
                               selected: isSelected,
-                              selectedColor:
-                                  Colors.purple, // kolor tła po zaznaczeniu
-                              backgroundColor:
-                                  Colors
-                                      .grey[300], // kolor tła gdy niezaznaczone
+                              // selectedColor:
+                              //     Colors.purple, // kolor tła po zaznaczeniu
+                              // backgroundColor:
+                              //     Colors
+                              //         .grey[300], // kolor tła gdy niezaznaczone
                               onSelected: (selected) {
                                 setState(() {
                                   editedTags[index] = {tagName: selected};
@@ -927,15 +927,17 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       return;
     }
 
-    logger.d('Adding recipe with the following data:' 
-        '\nName: ${_drinkNameController.text}'
-        '\nDescription: ${_descriptionController.text}'
-        '\nImage: $imagePath'
-        '\nIngredients: $ingredients'
-        '\nSteps: $steps'
-        '\nHas Ice: $hasIce'
-        '\nStrength: $selectedStrength'
-        '\nTags: ${selectedTags.map((tag) => tag.name).join(', ')}');
+    logger.d(
+      'Adding recipe with the following data:'
+      '\nName: ${_drinkNameController.text}'
+      '\nDescription: ${_descriptionController.text}'
+      '\nImage: $imagePath'
+      '\nIngredients: $ingredients'
+      '\nSteps: $steps'
+      '\nHas Ice: $hasIce'
+      '\nStrength: $selectedStrength'
+      '\nTags: ${selectedTags.map((tag) => tag.name).join(', ')}',
+    );
 
     File? imageFile = imagePath != null ? File(imagePath!) : null;
 
@@ -943,7 +945,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       _drinkNameController.text,
       _descriptionController.text,
       imageFile,
-      userId, 
+      userId,
       ingredients,
       steps,
       hasIce,

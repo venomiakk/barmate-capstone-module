@@ -33,9 +33,9 @@ class _UserStashScreenState extends State<UserStashScreen> {
   List<String> availableCategories = [];
   bool isSearchPanelVisible = false;
   final groqService = GroqService(
-  apiKey: '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',
-  endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-);
+    apiKey: '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',
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+  );
 
   @override
   void initState() {
@@ -322,28 +322,32 @@ class _UserStashScreenState extends State<UserStashScreen> {
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.auto_awesome),
         label: const Text("AI Recipe"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         onPressed: () async {
           bool dialogShown = false;
           try {
             showDialog(
               context: context,
               barrierDismissible: false,
-              builder: (context) => AlertDialog(
-                content: Row(
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text("Generating recipe using your stash..."),
+              builder:
+                  (context) => AlertDialog(
+                    content: Row(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Text("Generating recipe using your stash..."),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
             );
             dialogShown = true;
             final ingredients = stash.map((e) => e.ingredientName).toList();
-            final recipeJson = await groqService.generateRecipeFromIngredients(ingredients);
+            final recipeJson = await groqService.generateRecipeFromIngredients(
+              ingredients,
+            );
             if (context.mounted && dialogShown) Navigator.pop(context);
             if (recipeJson != null) {
               final generatedRecipe = GeneratedRecipeModel.fromJson(recipeJson);
@@ -351,20 +355,25 @@ class _UserStashScreenState extends State<UserStashScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GeneratedRecipeScreen(recipe: generatedRecipe), // <-- przekaż GeneratedRecipeModel
+                    builder:
+                        (context) => GeneratedRecipeScreen(
+                          recipe: generatedRecipe,
+                        ), // <-- przekaż GeneratedRecipeModel
                   ),
                 );
               }
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Failed to generate recipe. Try again.")),
+                const SnackBar(
+                  content: Text("Failed to generate recipe. Try again."),
+                ),
               );
             }
           } catch (e) {
             if (context.mounted && dialogShown) Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Error: $e")),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Error: $e")));
           }
         },
       ),
