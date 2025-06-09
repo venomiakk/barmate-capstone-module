@@ -66,7 +66,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-
     // Kontynuuj wybieranie zdjęcia
     final ImagePicker picker = ImagePicker();
     try {
@@ -261,6 +260,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                   ),
                   child:
                       _isSaving

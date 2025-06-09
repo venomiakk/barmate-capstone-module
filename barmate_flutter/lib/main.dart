@@ -24,16 +24,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: themeNotifier,
-      builder: (context, currentTheme, child) {
+    return ValueListenableBuilder<ThemeData>(
+      valueListenable: appThemeNotifier,
+      builder: (context, themeData, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorScheme:
-                currentTheme ? ColorScheme.light() : ColorScheme.dark(),
-          ), 
+          title: 'BarMate',
+          theme: themeData,
           home: AuthGate(),
+          debugShowCheckedModeBanner: false,
         );
       },
     );

@@ -2,6 +2,7 @@ import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/data/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class AppBarWidget extends StatefulWidget implements PreferredSizeWidget {
   const AppBarWidget({super.key});
@@ -17,6 +18,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
   final authService = AuthService();
   String username = ''; // Domyślna wartość
   bool _isLoading = true;
+  var logger = Logger(printer: PrettyPrinter());
 
   @override
   void initState() {
@@ -107,12 +109,12 @@ class _AppBarWidgetState extends State<AppBarWidget> {
               ),
               child: IconButton(
                 icon: Icon(
-                  currentTheme ? Icons.dark_mode : Icons.light_mode,
+                  Icons.notifications,
                   color: Theme.of(context).colorScheme.primary,
                   size: 40,
                 ),
                 onPressed: () {
-                  themeNotifier.value = !themeNotifier.value;
+                  logger.i('TODO: Go to notifications');
                 },
               ),
             ),

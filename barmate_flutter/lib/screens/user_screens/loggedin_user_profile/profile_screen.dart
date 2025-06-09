@@ -5,6 +5,7 @@ import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink_card_widget.dart'; // Add this import
+import 'package:barmate/screens/user_screens/profile/settings_screen.dart';
 import 'package:barmate/screens/user_screens/profile/user_history.dart';
 import 'package:barmate/screens/user_screens/profile/widgets/users_recipes_list.dart';
 import 'package:flutter/material.dart';
@@ -165,8 +166,10 @@ class _UserPageState extends State<UserPage> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              logger.d("Settings button pressed");
-              // Navigate to overall settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
             },
           ),
           IconButton(

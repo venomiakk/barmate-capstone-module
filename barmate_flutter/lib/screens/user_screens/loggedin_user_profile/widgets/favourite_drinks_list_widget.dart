@@ -153,11 +153,12 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
                       },
                       child: CircleAvatar(
                         radius: 24,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                         child: const Icon(
                           Icons.search,
                           size: 24,
-                          color: Colors.white,
+                          // color: Colors.white,
                         ),
                       ),
                     ),
@@ -179,11 +180,12 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
                       },
                       child: CircleAvatar(
                         radius: 24,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                         child: const Icon(
                           Icons.local_bar,
                           size: 24,
-                          color: Colors.white,
+                          // color: Colors.white,
                         ),
                       ),
                     ),

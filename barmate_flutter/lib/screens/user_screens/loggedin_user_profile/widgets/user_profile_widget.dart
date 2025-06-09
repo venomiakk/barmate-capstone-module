@@ -70,6 +70,8 @@ class UserProfileWidget extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
