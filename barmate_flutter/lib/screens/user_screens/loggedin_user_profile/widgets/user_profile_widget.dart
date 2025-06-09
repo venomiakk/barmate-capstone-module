@@ -72,6 +72,8 @@ class UserProfileWidget extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 5, vertical: 4),
                   backgroundColor:
                       Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onPrimaryContainer,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),

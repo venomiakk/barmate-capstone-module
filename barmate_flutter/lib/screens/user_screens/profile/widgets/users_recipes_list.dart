@@ -206,6 +206,8 @@ class UsersRecipesListState extends State<UsersRecipesList> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
               ),
             ],

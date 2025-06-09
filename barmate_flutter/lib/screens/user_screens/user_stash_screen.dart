@@ -323,6 +323,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
         icon: const Icon(Icons.auto_awesome),
         label: const Text("AI Recipe"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         onPressed: () async {
           bool dialogShown = false;
           try {

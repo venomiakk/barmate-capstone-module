@@ -103,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _notifyThemeChange() {
     // Zaktualizuj globalny notifier
     appThemeNotifier.updateTheme(_themeMode, _primaryColor);
-    logger.d("Theme changed: $_themeMode, Color: $_primaryColor");
+    logger.i("Theme changed: $_themeMode, Color: $_primaryColor");
   }
 
   String _getThemeDisplayName(ThemeMode mode) {
@@ -123,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return 'Electric Blue';
       case 0xFF388E3C:
         return 'Forest Green';
-      case 0xFF7B1FA2:
+      case 0xFF8E24AA:
         return 'Royal Purple';
       case 0xFFFF5722:
         return 'Vibrant Orange';

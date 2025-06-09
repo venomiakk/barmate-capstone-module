@@ -63,8 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => AddRecipeScreen()),
           );
         },
-        child: const Icon(Icons.add),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+        child: const Icon(Icons.add),
       ),
     );
   }
