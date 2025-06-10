@@ -2,7 +2,7 @@ import 'package:barmate/constants.dart' as constants;
 import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/repositories/collection_repository.dart';
 import 'package:barmate/screens/admin_screens/create_collection.dart';
-import 'package:barmate/screens/collection_screen.dart';
+import 'package:barmate/screens/user_screens/collection_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';

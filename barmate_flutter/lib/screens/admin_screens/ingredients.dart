@@ -5,7 +5,7 @@ import 'package:barmate/repositories/collection_repository.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/screens/admin_screens/create_collection.dart';
 import 'package:barmate/screens/admin_screens/create_ingredient.dart';
-import 'package:barmate/screens/collection_screen.dart';
+import 'package:barmate/screens/user_screens/collection_screen.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';
 import 'package:flutter/material.dart';

@@ -9,6 +9,7 @@ class CollectionRecipeRepository {
       final response = await client
           .rpc('get_recipes_by_collection', params: {'p_collection_id': collectionId});
       if (response != null && response is List) {
+        print(response);
         return response
             .map((e) => Recipe.fromJson(e as Map<String, dynamic>))
             .toList();

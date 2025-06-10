@@ -4,7 +4,7 @@ import 'package:barmate/repositories/collecrion_recipe_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/constants.dart' as constants;
 import 'package:flutter/material.dart';
-import 'user_screens/recipe_screen.dart';
+import 'recipe_screen.dart';
 
 class CollectionScreen extends StatefulWidget {
   final Collection collection;

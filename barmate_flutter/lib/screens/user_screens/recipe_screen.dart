@@ -42,7 +42,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
   String userId = '';
   String userLogin = '';
   bool _isFavourite = false;
-  bool _isInHistory = false;
   bool _checkingStatus = true;
   int _drinkCount = 1; // Domyślna liczba drinków
 
@@ -71,13 +70,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
         userId,
         widget._recipe!.id,
       );
-      final hist = await _historyRepository.checkIfHisotryRecipesExists(
-        userId,
-        widget._recipe!.id,
-      );
       setState(() {
         _isFavourite = fav;
-        _isInHistory = hist;
         _checkingStatus = false;
       });
     }
@@ -488,64 +482,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                             );
                                           }
                                         },
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  _isInHistory
-                                      ? Icons.local_bar
-                                      : Icons.local_bar_outlined,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.primary, // kolor z theme
-                                ),
-                                tooltip:
-                                    _isInHistory
-                                        ? 'Remove from history'
-                                        : 'Mark as drunk',
-                                onPressed:
-                                    _checkingStatus
-                                        ? null
-                                        : () async {
-                                          // ?: po co to jest?
-                                          // *: poza tym nie działa...
-                                          if (_isInHistory) {
-                                            await _historyRepository
-                                                .removeRecipeFromHistory(
-                                                  userId,
-                                                  widget._recipe!.id,
-                                                );
-                                            setState(
-                                              () => _isInHistory = false,
-                                            );
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Removed from history!',
-                                                ),
-                                              ),
-                                            );
-                                          } else {
-                                            await _historyRepository
-                                                .addRecipesToHistory(
-                                                  userId,
-                                                  widget._recipe!.id,
-                                                );
-                                            setState(() => _isInHistory = true);
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Marked as drunk!',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        },
-                              ),
+                              )
                             ],
                           ),
                         ],

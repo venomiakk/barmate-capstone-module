@@ -33,7 +33,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
   List<String> availableCategories = [];
   bool isSearchPanelVisible = false;
   final groqService = GroqService(
-  apiKey: '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',
+  apiKey: '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',
   endpoint: 'https://api.groq.com/openai/v1/chat/completions',
 );
 

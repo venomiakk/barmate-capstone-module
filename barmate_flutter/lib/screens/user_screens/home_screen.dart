@@ -3,7 +3,7 @@ import 'package:barmate/model/collection_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/collection_repository.dart';
-import 'package:barmate/screens/collection_screen.dart';
+import 'package:barmate/screens/user_screens/collection_screen.dart';
 import 'package:barmate/screens/user_screens/add_recipe.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:barmate/widgets/app_bar.dart';

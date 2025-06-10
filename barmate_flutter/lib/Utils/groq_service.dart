@@ -31,7 +31,7 @@ Return the result as a JSON object with the following fields:
   ]
 }
 - The 'ingredients' array should use only the provided ingredients.
-- The 'amount' and 'unit' fields should be realistic.
+- The 'amount' and 'unit' fields should be realistic in metric system.
 - The 'description' should be a short, friendly summary of the drink.
 - The 'name' should be catchy and unique.
 - Return only valid JSON, no explanation.
@@ -60,7 +60,7 @@ Return the result as a JSON object with the following fields:
       },
       body: body,
     );
-
+    print(response.body); // Debugging: wypisz odpowiedź serwera
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       // Oczekujemy, że odpowiedź jest w polu choices[0].message.content jako string JSON
@@ -78,6 +78,8 @@ Return the result as a JSON object with the following fields:
           }
           return jsonDecode(cleaned);
         } catch (e) {
+          print(e);
+          // Jeśli parsowanie się nie powiedzie, zwróć null
           return null;
         }
       }
