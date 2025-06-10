@@ -46,6 +46,7 @@ class IngredientCardsList extends StatelessWidget {
             ingredientId: -1,
             ingredientName: '',
             amount: 0,
+            unit: '',
             categoryName: '',
             photoUrl: '',
           ),

@@ -12,6 +12,12 @@ import 'package:http/http.dart' as http;
 import 'package:barmate/screens/user_screens/generated_recipe_screen.dart';
 import 'package:barmate/model/recipe_model.dart';
 
+import 'package:provider/provider.dart';
+import 'package:barmate/controllers/notifications_controller.dart';
+import 'package:barmate/model/notifications_model.dart';
+
+
+
 class UserStashScreen extends StatefulWidget {
   const UserStashScreen({super.key});
 
@@ -46,28 +52,73 @@ class _UserStashScreenState extends State<UserStashScreen> {
   }
 
   Future<void> _loadStash() async {
-    setState(() => isLoading = true);
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
+  setState(() => isLoading = true);
 
-    final fetchedStash = await repository.fetchUserStash(userId);
-    setState(() {
-      stash.clear();
-      stash.addAll(fetchedStash);
-      selectedIngredientIds.clear();
-      selectedAmounts.clear();
-      for (var item in fetchedStash) {
-        selectedAmounts[item.ingredientId] = item.amount;
-      }
-      groupedStash = {};
-      for (var item in fetchedStash) {
-        groupedStash.putIfAbsent(item.categoryName, () => []).add(item);
-      }
-      availableCategories = groupedStash.keys.toList()..sort();
-      isDeleteMode = false;
-      isLoading = false;
-    });
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+  if (userId == null) return;
+
+  final fetchedStash = await repository.fetchUserStash(userId);
+
+  setState(() {
+    stash.clear();
+    stash.addAll(fetchedStash);
+    selectedIngredientIds.clear();
+    selectedAmounts.clear();
+
+    for (var item in fetchedStash) {
+      selectedAmounts[item.ingredientId] = item.amount;
+    }
+
+    groupedStash = {};
+    for (var item in fetchedStash) {
+      groupedStash.putIfAbsent(item.categoryName, () => []).add(item);
+    }
+
+    availableCategories = groupedStash.keys.toList()..sort();
+    isDeleteMode = false;
+    isLoading = false;
+  });
+
+
+    final lowQuantityItems = fetchedStash.where((item) {
+    final amount = item.amount;
+    final unit = item.unit.toLowerCase();
+
+    if (unit.contains('ml') || unit.contains('g')) {
+      return amount < 400;
+    } else {
+      return amount < 2;
+    }
+  }).toList();
+
+
+  if (lowQuantityItems.isNotEmpty && context.mounted) {
+    final notifier = Provider.of<NotificationService>(context, listen: false);
+
+    for (final item in lowQuantityItems) {
+    final amount = item.amount;
+    final unit = item.unit;
+    final name = item.ingredientName;
+
+    final alreadyNotified = notifier.notifications.any(
+      (n) => n.title == "Low on $name",
+    );
+
+    if (!alreadyNotified) {
+      notifier.addNotification(
+        AppNotification(
+          title: "Low on $name",
+          message: "Only $amount $unit left in your stash.",
+          timestamp: DateTime.now(),
+        ),
+      );
+    }
   }
+
+
+  }
+}
+
 
   void _toggleSelection(int ingredientId) {
     setState(() {
@@ -591,15 +642,19 @@ class _UserStashScreenState extends State<UserStashScreen> {
                                 entry.ingredientId,
                               );
                               setState(() {
-                                stash.removeAt(index);
-                                selectedAmounts.remove(entry.ingredientId);
-                              });
+                                  stash.removeAt(index);
+                                  selectedAmounts.remove(entry.ingredientId);
+                                });
                             } else {
                               await repository.changeIngredientAmount(
                                 userId,
                                 entry.ingredientId,
                                 updated,
+                                context: context,
+                                ingredientName: entry.ingredientName,
+                                unit: entry.unit,
                               );
+
                               setState(() {
                                 selectedAmounts[entry.ingredientId] = updated;
                               });
@@ -611,16 +666,19 @@ class _UserStashScreenState extends State<UserStashScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            '${selectedAmounts[entry.ingredientId] ?? 0}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                       Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          '${selectedAmounts[entry.ingredientId] ?? 0} ${entry.unit}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
+                      ),
                         GestureDetector(
                           onTap: () async {
                             final userId =
@@ -632,7 +690,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
                               selectedAmounts[entry.ingredientId] = updated;
                             });
                             await repository.changeIngredientAmount(
-                              userId,
+                              userId!,
                               entry.ingredientId,
                               updated,
                             );

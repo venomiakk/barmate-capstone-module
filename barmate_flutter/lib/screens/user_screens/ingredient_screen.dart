@@ -1,4 +1,5 @@
 import 'package:barmate/constants.dart' as constants;
+import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -6,6 +7,7 @@ import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/ingredient_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 
@@ -59,11 +61,10 @@ class _IngredientScreenState extends State<IngredientScreen> {
     return existingItem;
   }
 
-Future<void> _updateAmount(int newAmount) async {
+ Future<void> _updateAmount(int newAmount, Ingredient ingredient) async {
   if (userId == null) return;
 
   final stash = await widget.stashRepository.fetchUserStash(userId);
-
   UserStash? existingItem;
   try {
     existingItem = stash.firstWhere((item) => item.ingredientId == widget.ingredientId);
@@ -72,22 +73,27 @@ Future<void> _updateAmount(int newAmount) async {
   }
 
   if (newAmount <= 0) {
-
     if (existingItem != null) {
-      await widget.stashRepository.removeFromStash(userId, widget.ingredientId);
+      await widget.stashRepository.removeFromStash(userId!, widget.ingredientId);
     }
   } else if (existingItem != null) {
-
-    await widget.stashRepository.changeIngredientAmount(userId, widget.ingredientId, newAmount);
+    await widget.stashRepository.changeIngredientAmount(userId!, widget.ingredientId, newAmount);
   } else {
-
     await widget.stashRepository.addToStash(userId, widget.ingredientId, newAmount);
   }
+
+
+  Provider.of<NotificationService>(context, listen: false).maybeNotifyLowQuantity(
+    ingredientName: ingredient.name,
+    amount: newAmount,
+    unit: ingredient.unit ?? '',
+  );
 
   setState(() {
     _stashFuture = _loadStash();
   });
 }
+
 
 
   Future<void> _showAddToAmountDialog(Ingredient ingredient, int currentAmount) async {
@@ -165,7 +171,7 @@ Future<void> _updateAmount(int newAmount) async {
                           ElevatedButton(
                             onPressed: () {
                               if (counter > 0) {
-                                _updateAmount(currentAmount + counter);
+                                _updateAmount(currentAmount + counter, ingredient);
                                 Navigator.of(context).pop();
                               } else {
                                 Navigator.of(context).pop();
@@ -578,7 +584,7 @@ Future<void> _updateAmount(int newAmount) async {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        _updateAmount(counter);
+                        _updateAmount(counter, ingredient);
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(

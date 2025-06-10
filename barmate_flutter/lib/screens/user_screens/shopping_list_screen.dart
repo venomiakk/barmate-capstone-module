@@ -1,4 +1,6 @@
+import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/model/shopping_list_model.dart';
 import 'package:barmate/repositories/stash_repository.dart';

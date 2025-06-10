@@ -1,8 +1,11 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
+import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:barmate/data/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'package:barmate/screens/user_screens/notifications_screen.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class AppBarWidget extends StatefulWidget implements PreferredSizeWidget {
   const AppBarWidget({super.key});
@@ -102,23 +105,52 @@ class _AppBarWidgetState extends State<AppBarWidget> {
             ],
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
-                vertical: 25,
+  Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 25),
+    child: Consumer<NotificationService>(
+      builder: (context, notifier, child) {
+        final hasUnread = notifier.hasUnread;
+
+        return Stack(
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.notifications,
+                color: Theme.of(context).colorScheme.primary,
+                size: 40,
               ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.notifications,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 40,
-                ),
-                onPressed: () {
-                  logger.i('TODO: Go to notifications');
-                },
-              ),
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+
+                Provider.of<NotificationService>(context, listen: false).markAllAsRead();
+              },
+
             ),
+            if (hasUnread)
+              Positioned(
+                right: 6,
+                top: 6,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
           ],
+        );
+      },
+    ),
+  ),
+],
+
         );
       },
     );

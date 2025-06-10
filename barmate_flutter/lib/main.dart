@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:barmate/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:barmate/data/notifiers.dart';
+import 'package:provider/provider.dart';
+import 'package:barmate/controllers/notifications_controller.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +19,16 @@ Future<void> main() async {
   // Skoro getInstance() zwraca Future<UserPreferences>, nie ma potrzeby wywoływania init() oddzielnie
   await UserPreferences.getInstance(); // To już inicjalizuje preferencje
 
-  runApp(const MyApp());
+    runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NotificationService()),
+        // inne providery
+      ],
+      child: const MyApp(),
+    ),
+  );
+
 }
 
 class MyApp extends StatelessWidget {

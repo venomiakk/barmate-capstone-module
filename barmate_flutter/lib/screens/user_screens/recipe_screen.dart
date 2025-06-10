@@ -1,6 +1,7 @@
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/constants.dart' as constatns;
+import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_comment_model.dart';
 import 'package:barmate/model/recipe_model.dart';
@@ -17,6 +18,7 @@ import 'package:barmate/widgets/recipeWidgets/ingredient_card_list.dart';
 import 'package:barmate/widgets/recipeWidgets/recipe_comments_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
+import 'package:provider/provider.dart';
 
 class RecipeScreen extends StatefulWidget {
   final Recipe? _recipe;
@@ -97,6 +99,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 ingredientId: json.ingredientId,
                 ingredientName: json.ingredientName,
                 amount: json.amount,
+                unit: json.unit, // Optional field
                 categoryName: json.categoryName,
                 photoUrl: json.photoUrl, // Optional field
               ),
@@ -235,55 +238,64 @@ class _RecipeScreenState extends State<RecipeScreen> {
       });
     }
   }
+Future<void> _removeIngredientsFromStash() async {
+  try {
+    for (final ri in _ingredients) {
+      final stash = _userStash.firstWhere(
+        (s) => s.ingredientId == ri.ingredient.id,
+        orElse: () => UserStash(
+          ingredientId: -1,
+          ingredientName: '',
+          amount: 0,
+          unit: '',
+          categoryName: '',
+          photoUrl: '',
+        ),
+      );
 
-  Future<void> _removeIngredientsFromStash() async {
-    try {
-      for (final ri in _ingredients) {
-        final stash = _userStash.firstWhere(
-          (s) => s.ingredientId == ri.ingredient.id,
-          orElse:
-              () => UserStash(
-                ingredientId: -1,
-                ingredientName: '',
-                amount: 0,
-                categoryName: '',
-                photoUrl: '',
-              ),
-        );
-        if (stash.ingredientId != -1 && ri.amount != null) {
-          final baseAmount = double.tryParse(ri.amount!) ?? 0;
-          final totalAmount = baseAmount * _drinkCount;
-          final ownedAmount = stash.amount ?? 0;
-          final toRemove =
-              ownedAmount >= totalAmount ? totalAmount : ownedAmount;
-          final newAmount = ownedAmount - toRemove;
-          if (toRemove > 0) {
-            if (newAmount <= 0) {
-              await _userStashRepository.removeFromStash(
-                userId,
-                ri.ingredient.id,
-              );
-            } else {
-              await _userStashRepository.changeIngredientAmount(
-                userId,
-                ri.ingredient.id,
-                newAmount.round(),
-              );
-            }
+      if (stash.ingredientId != -1 && ri.amount != null) {
+        final baseAmount = double.tryParse(ri.amount!) ?? 0;
+        final totalAmount = baseAmount * _drinkCount;
+        final ownedAmount = stash.amount ?? 0;
+        final toRemove = ownedAmount >= totalAmount ? totalAmount : ownedAmount;
+        final newAmount = ownedAmount - toRemove;
+
+        if (toRemove > 0) {
+          if (newAmount <= 0) {
+            await _userStashRepository.removeFromStash(
+              userId,
+              ri.ingredient.id,
+              context: context,
+              ingredientName: ri.ingredient.name,
+              unit: ri.ingredient.unit ?? '',
+            );
+          } else {
+            await _userStashRepository.changeIngredientAmount(
+              userId,
+              ri.ingredient.id,
+              newAmount.round(),
+              context: context,
+              ingredientName: ri.ingredient.name,
+              unit: ri.ingredient.unit ?? '',
+            );
           }
         }
       }
-      await _fetchUserStash();
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingredients removed from stash!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error removing ingredients: $e')));
     }
+
+    await _fetchUserStash();
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Ingredients removed from stash!')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error removing ingredients: $e')),
+    );
   }
+}
+
+
 
   Future<void> _fetchCreatorData() async {
     final creatorId = widget._recipe?.creatorId;
@@ -649,6 +661,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           widget._recipe!.id,
                         );
                       }
+                      
                     },
           ),
           const SizedBox(height: 12),

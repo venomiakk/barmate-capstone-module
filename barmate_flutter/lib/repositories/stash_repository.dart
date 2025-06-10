@@ -1,5 +1,8 @@
+import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:barmate/model/stash_model.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserStashRepository {
@@ -41,37 +44,59 @@ class UserStashRepository {
     }
   }
 
-  Future<void> removeFromStash(var userId, int ingredientId) async {
-    try {
-      final response = await client.rpc(
-        'delete_ingredient_from_stash',
-        params: {'p_user_id': userId, 'p_ingredient_id': ingredientId},
+  Future<void> removeFromStash(
+    String userId,
+    int ingredientId, {
+    BuildContext? context,
+    String? ingredientName,
+    String? unit,
+  }) async {
+    await Supabase.instance.client
+        .from('user_stash')
+        .delete()
+        .match({
+          'user_id': userId,
+          'ingredient_id': ingredientId,
+        });
+
+    if (context != null && ingredientName != null && unit != null) {
+      Provider.of<NotificationService>(context, listen: false)
+          .maybeNotifyLowQuantity(
+        ingredientName: ingredientName,
+        amount: 0,
+        unit: unit,
       );
-      print('Removed from stash: $response');
-    } catch (e) {
-      print('Error removing from stash: $e');
     }
   }
 
+
   Future<void> changeIngredientAmount(
-    var userId,
+    String userId,
     int ingredientId,
-    int newAmount,
-  ) async {
-    try {
-      final response = await client.rpc(
-        'change_ingredient_amount_in_stash',
-        params: {
-          'p_user_id': userId,
-          'p_ingredient_id': ingredientId,
-          'p_amount': newAmount,
-        },
+    int newAmount, {
+    BuildContext? context,
+    String? ingredientName,
+    String? unit,
+  }) async {
+    await Supabase.instance.client
+        .from('user_stash')
+        .update({'amount': newAmount})
+        .match({
+          'user_id': userId,
+          'ingredient_id': ingredientId,
+        });
+
+    if (context != null && ingredientName != null && unit != null) {
+      Provider.of<NotificationService>(context, listen: false)
+          .maybeNotifyLowQuantity(
+        ingredientName: ingredientName,
+        amount: newAmount,
+        unit: unit,
       );
-      print('Amount changed: $response');
-    } catch (e) {
-      print('Error changing ingredient amount: $e');
     }
   }
+
+
 
   Future<UserStash?> fetchSingleIngredientFromStash(
     var userId,
