@@ -118,9 +118,9 @@ class _UserPageState extends State<UserPage> {
         // Jeśli brak preferencji, wybierz całkowicie losowy przepis
         final random = Random();
         selectedRecipe = allRecipes[random.nextInt(allRecipes.length)];
-        logger.i(
-          "No preferences set, selected random recipe: ${selectedRecipe.name}",
-        );
+        // logger.i(
+        //   "No preferences set, selected random recipe: ${selectedRecipe.name}",
+        // );
       }
 
       // Zamknij loading dialog
@@ -162,7 +162,7 @@ class _UserPageState extends State<UserPage> {
               .cast<int>()
               .toSet();
 
-      logger.i("Loaded user preferences: $intIds");
+      // logger.i("Loaded user preferences: $intIds");
       return intIds;
     } catch (e) {
       logger.e("Error loading user preferences: $e");

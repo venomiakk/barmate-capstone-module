@@ -120,12 +120,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _getColorDisplayName(MaterialColor color) {
     switch (color.value) {
+      case 0xFF8E24AA:
+        return 'Royal Purple';
       case 0xFF1976D2:
         return 'Electric Blue';
       case 0xFF388E3C:
         return 'Forest Green';
-      case 0xFF8E24AA:
-        return 'Royal Purple';
       case 0xFFFF5722:
         return 'Vibrant Orange';
       case 0xFFD32F2F:
