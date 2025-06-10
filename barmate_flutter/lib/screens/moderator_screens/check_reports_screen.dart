@@ -68,9 +68,8 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
         );
         return;
       } else {
-        // TODO: Call your recipe removal logic here, e.g.:
-        // final recipeResult = await _recipeRepository.removeRecipe(recipe.id);
-        // if (recipeResult == null) success = false;
+        // Remove the recipe (call your repository method)
+        await _recipeRepository.deleteRecipe(recipe.id, recipe.photoUrl!);
       }
     }
 
@@ -92,8 +91,8 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result != null
-            ? 'Zgłoszenie zostało usunięte.'
-            : 'Wystąpił błąd podczas usuwania zgłoszenia.'),
+            ? 'Report has been removed.'
+            : 'An error occurred while removing the report.'),
       ),
     );
     setState(() {

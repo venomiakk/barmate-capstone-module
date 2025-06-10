@@ -27,6 +27,26 @@ class PublicProfileRepository {
     }
   }
 
+  Future<PublicProfileModel> fetchUserDataByUuid(String userId) async {
+    try {
+      final response = await client.rpc(
+        'get_userdata_by_uuid',
+        params: {'p_user_id': userId},
+      );
+
+      // Check if response is empty
+      if (response == null || (response is List && response.isEmpty)) {
+        throw Exception('User not found');
+      }
+
+      // The response is already the data array - no need to access .data
+      return PublicProfileModel.fromJson(response[0]);
+    } catch (e) {
+      logger.e('Error fetching user data: $e');
+      throw Exception('Failed to fetch user data: $e');
+    }
+  }
+
   Future<List<dynamic>> fetchUserFavoriteDrinks(String userId) async {
     try {
       // Call repository to get the user's favorite drinks

@@ -13,6 +13,7 @@ import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/repositories/stash_repository.dart';
 import 'package:barmate/screens/user_screens/ingredient_screen.dart';
+import 'package:barmate/screens/user_screens/public_user_profile/public_user_profile_screen.dart';
 import 'package:barmate/widgets/recipeWidgets/add_comment_widget.dart';
 import 'package:barmate/widgets/recipeWidgets/ingredient_card_list.dart';
 import 'package:barmate/widgets/recipeWidgets/recipe_comments_widget.dart';
@@ -22,6 +23,7 @@ import 'package:provider/provider.dart';
 
 import 'package:barmate/repositories/report_repository.dart';
 import 'package:logger/logger.dart';
+import 'package:barmate/repositories/public_profile_repository.dart';
 
 
 class RecipeScreen extends StatefulWidget {
@@ -56,8 +58,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _isFavourite = false;
   bool _checkingStatus = true;
   int _drinkCount = 1; // Domyślna liczba drinków
+  int? _creatorProfileId;
   String? _creatorLogin;
   String? _creatorPhotoUrl;
+  bool _canReportRecipe = false;
 
   @override
   void initState() {
@@ -67,8 +71,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _fetchSteps();
     _fetchComments();
     _checkFavouriteAndHistory();
-    _fetchCreatorData(); // Dodaj to!
+    _fetchCreatorData(); // This will set _canReportRecipe
   }
+
 
   Future<void> _initializePrefs() async {
     final prefs = await UserPreferences.getInstance();
@@ -303,23 +308,34 @@ Future<void> _removeIngredientsFromStash() async {
 
 
   Future<void> _fetchCreatorData() async {
-    final creatorId = widget._recipe?.creatorId;
-    if (creatorId == null) {
+    final creatorUuid = widget._recipe?.creatorId;
+    if (creatorUuid == null) {
       setState(() {
         _creatorLogin = "Administrator";
-        _creatorPhotoUrl = null; // nie pobieraj zdjęcia z bazy
+        _creatorPhotoUrl = null;
+        _canReportRecipe = false;
+        _creatorProfileId = null;
       });
       return;
     }
-    final authService = AuthService();
-    final profileRepo = LoggedinUserProfileRepository();
-    final login = await authService.fetchUserLoginById(creatorId);
-    final avatar = await profileRepo.fetchUserAvatar(creatorId);
-    setState(() {
-      _creatorLogin = login;
-      _creatorPhotoUrl =
-          (avatar != null && avatar != 'No avatar available') ? avatar : null;
-    });
+    try {
+      final publicProfileRepo = PublicProfileRepository();
+      // Użyj fetchUserDataByUuid, żeby pobrać profil po uuid
+      final profile = await publicProfileRepo.fetchUserDataByUuid(creatorUuid);
+      setState(() {
+        _creatorLogin = profile.username;
+        _creatorPhotoUrl = profile.avatarUrl;
+        _canReportRecipe = true;
+        _creatorProfileId = profile.id; // int id z PublicProfileModel
+      });
+    } catch (e) {
+      setState(() {
+        _creatorLogin = "Unknown";
+        _creatorPhotoUrl = null;
+        _canReportRecipe = false;
+        _creatorProfileId = null;
+      });
+    }
   }
 
   double get _averageRating {
@@ -332,20 +348,14 @@ Future<void> _removeIngredientsFromStash() async {
 
   // Dodaj funkcję do zgłaszania przepisu
   Future<void> _reportRecipe() async {
-    if (userId.isEmpty || widget._recipe == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Musisz być zalogowany, aby zgłosić przepis.')),
-      );
-      return;
-    }
     try {
       await _reportRepository.addReport(widget._recipe!.id, null, userId);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Przepis został zgłoszony!')),
+        const SnackBar(content: Text('Recipe has been reported!')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd podczas zgłaszania przepisu: $e')),
+        SnackBar(content: Text('Error while reporting recipe: $e')),
       );
     }
   }
@@ -379,11 +389,12 @@ Future<void> _removeIngredientsFromStash() async {
                         ),
                       ),
                       actions: [
-                        IconButton(
-                          icon: const Icon(Icons.report, color: Colors.redAccent, size: 32),
-                          tooltip: 'Zgłoś przepis',
-                          onPressed: _reportRecipe,
-                        ),
+                        if (_canReportRecipe)
+                          IconButton(
+                            icon: const Icon(Icons.report, color: Colors.redAccent, size: 32),
+                            tooltip: 'Report recipe',
+                            onPressed: _reportRecipe,
+                          ),
                       ],
                       flexibleSpace: FlexibleSpaceBar(
                         background: Stack(
@@ -439,50 +450,61 @@ Future<void> _removeIngredientsFromStash() async {
                             Positioned(
                               left: 16,
                               bottom: 16,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    right: 12,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      _creatorPhotoUrl != null &&
-                                              _creatorPhotoUrl!.isNotEmpty
-                                          ? CircleAvatar(
-                                            radius: 16,
-                                            backgroundImage: NetworkImage(
-                                              '${constatns.picsBucketUrl}/${_creatorPhotoUrl}',
-                                            ),
-                                          )
-                                          : const CircleAvatar(
-                                            radius: 16,
-                                            child: Icon(
-                                              Icons.person,
-                                              color: Colors.white,
-                                            ),
-                                            backgroundColor: Colors.grey,
-                                          ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _creatorLogin ?? '',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 8,
-                                              color: Colors.black54,
-                                              offset: Offset(0, 2),
-                                            ),
-                                          ],
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (_creatorProfileId != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PublicUserProfileScreen(
+                                          userId: _creatorProfileId.toString(),
                                         ),
                                       ),
-                                    ],
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: Row(
+                                      children: [
+                                        _creatorPhotoUrl != null && _creatorPhotoUrl!.isNotEmpty
+                                            ? CircleAvatar(
+                                                radius: 16,
+                                                backgroundImage: NetworkImage(
+                                                  '${constatns.picsBucketUrl}/${_creatorPhotoUrl}',
+                                                ),
+                                              )
+                                            : const CircleAvatar(
+                                                radius: 16,
+                                                child: Icon(
+                                                  Icons.person,
+                                                  color: Colors.white,
+                                                ),
+                                                backgroundColor: Colors.grey,
+                                              ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _creatorLogin ?? '',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 8,
+                                                color: Colors.black54,
+                                                offset: Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
