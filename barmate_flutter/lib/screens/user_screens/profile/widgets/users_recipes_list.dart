@@ -204,8 +204,10 @@ class UsersRecipesListState extends State<UsersRecipesList> {
                 icon: const Icon(Icons.add),
                 label: const Text('Create Recipe'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
               ),
             ],
