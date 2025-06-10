@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/report_repository.dart';
 import 'package:barmate/model/report_model.dart';
+import 'package:barmate/model/recipe_comment_model.dart';
 import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Dodaj repozytorium komentarzy
+import 'package:barmate/repositories/comments_repository.dart';
+import 'package:barmate/constants.dart' as constants;
 
 class CheckReportsScreen extends StatefulWidget {
   const CheckReportsScreen({super.key});
@@ -13,11 +18,27 @@ class CheckReportsScreen extends StatefulWidget {
 
 class _CheckReportsScreenState extends State<CheckReportsScreen> {
   late Future<List<Report>> _reportsFuture;
+  final CommentsRepository _commentsRepository = CommentsRepository();
+
+  // Przechowuj pobrane komentarze w mapie: commentId -> RecipeComment
+  final Map<int, RecipeComment> _commentsCache = {};
 
   @override
   void initState() {
     super.initState();
     _reportsFuture = ReportRepository().fetchReports();
+  }
+
+  // Funkcja pobierająca komentarz po commentId (z cache lub z bazy)
+  Future<RecipeComment?> _fetchComment(int commentId) async {
+    if (_commentsCache.containsKey(commentId)) {
+      return _commentsCache[commentId];
+    }
+    final comment = await _commentsRepository.fetchCommentById(commentId);
+    if (comment != null) {
+      _commentsCache[commentId] = comment;
+    }
+    return comment;
   }
 
   // Funkcja wywoływana po przeciągnięciu w prawo
@@ -126,21 +147,49 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            report.description ?? '',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const SizedBox(height: 8),
-                          if (report.commentId != null)
-                            Text('Komentarz ID: ${report.commentId}'),
-                          if (report.recipeId != null)
-                            Text('Przepis ID: ${report.recipeId}'),
-                          Text('Zgłaszający: ${report.userId}'),
-                        ],
+                      child: FutureBuilder<RecipeComment?>(
+                        future: report.commentId != null
+                            ? _fetchComment(report.commentId!)
+                            : Future.value(null),
+                        builder: (context, commentSnapshot) {
+                          if (commentSnapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          final comment = commentSnapshot.data;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                report.description ?? '',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              const SizedBox(height: 8),
+                              if (comment != null) ...[
+                                if (comment.userName != null)
+                                  Text('Autor: ${comment.userName}'),
+                                Text('Treść: ${comment.comment}'),
+                                Text('Ocena: ${comment.rating}'),
+                                if (comment.photoUrl != null && comment.photoUrl!.isNotEmpty)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      '${constants.picsBucketUrl}/${comment.photoUrl!}',
+                                      height: 80,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 80),
+                                    ),
+                                  ),
+                              ] else ...[
+                                Text('Brak danych o komentarzu'),
+                              ],
+                              if (report.recipeId != null)
+                                Text('Przepis ID: ${report.recipeId}'),
+                              Text('Zgłaszający: ${report.userId}'),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

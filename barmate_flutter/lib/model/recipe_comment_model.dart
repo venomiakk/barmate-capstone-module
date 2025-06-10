@@ -17,7 +17,7 @@ class RecipeComment {
 
   factory RecipeComment.fromJson(Map<String, dynamic> json) {
     return RecipeComment(
-      commentId: json['comment_id'] as int,
+      commentId: json['id'] as int,
       userId: json['user_id'] as String?,
       userName: json['user_name'] as String?,
       comment: json['comment'] as String,
