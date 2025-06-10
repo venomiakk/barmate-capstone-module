@@ -2,6 +2,7 @@ import 'package:barmate/Utils/user_shared_preferences.dart';
 import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/constants.dart' as constatns;
 import 'package:barmate/model/ingredient_model.dart';
+import 'package:barmate/model/recipe_comment_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/model/stash_model.dart';
 import 'package:barmate/repositories/favourite_drinks_repository.dart';

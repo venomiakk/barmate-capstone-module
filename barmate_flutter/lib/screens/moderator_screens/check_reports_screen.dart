@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/report_repository.dart';
 import 'package:barmate/model/report_model.dart';
+import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CheckReportsScreen extends StatefulWidget {
   const CheckReportsScreen({super.key});
@@ -20,7 +22,6 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
 
   // Funkcja wywoływana po przeciągnięciu w prawo
   void _onSwipeRight(Report report) {
-    // TODO: Dodaj logikę np. zaakceptowania/rozpatrzenia zgłoszenia
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Przeciągnięto w prawo: ${report.description}')),
     );
@@ -28,16 +29,52 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
 
   // Funkcja wywoływana po przeciągnięciu w lewo
   void _onSwipeLeft(Report report) {
-    // TODO: Dodaj logikę np. odrzucenia zgłoszenia
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Przeciągnięto w lewo: ${report.description}')),
     );
   }
 
+  Future<void> _logoutConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      // Wylogowanie z backendu (np. Supabase)
+      await Supabase.instance.client.auth.signOut();
+      await UserPreferences.clearAll();
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zgłoszenia')),
+      appBar: AppBar(
+        title: const Text('Zgłoszenia'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _logoutConfirmation(context),
+            tooltip: 'Logout',
+          ),
+        ],
+      ),
       body: FutureBuilder<List<Report>>(
         future: _reportsFuture,
         builder: (context, snapshot) {
@@ -56,8 +93,7 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
             itemBuilder: (context, index) {
               final report = reports[index];
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Dismissible(
                   key: ValueKey(
                       '${report.commentId}_${report.recipeId}_${report.userId}_${index}'),
@@ -65,15 +101,13 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
                     color: Colors.green,
                     alignment: Alignment.centerLeft,
                     padding: const EdgeInsets.only(left: 24),
-                    child:
-                        const Icon(Icons.check, color: Colors.white, size: 32),
+                    child: const Icon(Icons.check, color: Colors.white, size: 32),
                   ),
                   secondaryBackground: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 24),
-                    child:
-                        const Icon(Icons.delete, color: Colors.white, size: 32),
+                    child: const Icon(Icons.delete, color: Colors.white, size: 32),
                   ),
                   onDismissed: (direction) {
                     if (direction == DismissDirection.startToEnd) {
@@ -96,7 +130,7 @@ class _CheckReportsScreenState extends State<CheckReportsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            report.description,
+                            report.description ?? '',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16),
                           ),

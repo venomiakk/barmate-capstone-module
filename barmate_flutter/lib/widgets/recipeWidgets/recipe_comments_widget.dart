@@ -1,22 +1,9 @@
+import 'package:barmate/model/recipe_comment_model.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/report_repository.dart';
 import 'package:barmate/Utils/user_shared_preferences.dart';
 
-class RecipeComment {
-  final int commentId; // Dodaj to pole!
-  final String userName;
-  final String comment;
-  final int rating;
-  final String? photoUrl;
 
-  RecipeComment({
-    required this.commentId,
-    required this.userName,
-    required this.comment,
-    required this.rating,
-    this.photoUrl,
-  });
-}
 
 class BuildCommentsListWidget extends StatefulWidget {
   final List<RecipeComment> comments;
@@ -97,7 +84,7 @@ class _BuildCommentsListWidgetState extends State<BuildCommentsListWidget> {
             margin: const EdgeInsets.symmetric(vertical: 6),
             child: ListTile(
               leading: StarRating(rating: c.rating, size: 20),
-              title: Text(c.userName),
+              title: Text(c.userName ?? 'Anonymous'),
               subtitle: Text(c.comment),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,

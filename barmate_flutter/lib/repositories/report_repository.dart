@@ -33,7 +33,7 @@ class ReportRepository {
 
   Future<List<Report>> fetchReports() async {
     try {
-      final response = await client.rpc('get_reports');
+      final response = await client.rpc('get_all_reports');
       if (response != null && response is List) {
         return response
             .map((json) => Report.fromJson(json as Map<String, dynamic>))

@@ -15,6 +15,9 @@ class _SignUpState extends State<SignUp> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  bool seeablePassword = true;
+  bool seeableConfirmPassword = true;
+
   void signUp() async {
     final email = emailController.text;
     final password = passwordController.text;
@@ -77,11 +80,27 @@ class _SignUpState extends State<SignUp> {
               ),
               SizedBox(height: size.height * 0.08),
               myTextField("email", Colors.black45, emailController),
-              myTextField("password", Colors.black45, passwordController),
-              myTextField(
+              myPasswordField(
+                "password",
+                Colors.black45,
+                passwordController,
+                seeablePassword,
+                () {
+                  setState(() {
+                    seeablePassword = !seeablePassword;
+                  });
+                },
+              ),
+              myPasswordField(
                 "confirm password",
                 Colors.black45,
                 confirmPasswordController,
+                seeableConfirmPassword,
+                () {
+                  setState(() {
+                    seeableConfirmPassword = !seeableConfirmPassword;
+                  });
+                },
               ),
               const SizedBox(height: 10),
               SizedBox(height: size.height * 0.04),
@@ -187,7 +206,40 @@ class _SignUpState extends State<SignUp> {
           ),
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.black45, fontSize: 19),
-          suffixIcon: Icon(Icons.visibility_off_outlined, color: color),
+        ),
+      ),
+    );
+  }
+
+  Container myPasswordField(
+    String hintText,
+    Color color,
+    TextEditingController controller,
+    bool obscure,
+    VoidCallback toggleVisibility,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          fillColor: Colors.white,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          hintText: hintText,
+          hintStyle: TextStyle(color: Colors.black45, fontSize: 19),
+          suffixIcon: GestureDetector(
+            onTap: toggleVisibility,
+            child: Icon(
+              obscure ? Icons.visibility_off_outlined : Icons.visibility,
+              color: color,
+            ),
+          ),
         ),
       ),
     );
