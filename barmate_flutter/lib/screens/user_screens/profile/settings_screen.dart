@@ -1,3 +1,4 @@
+import 'package:barmate/screens/user_screens/profile/user_preferences_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
@@ -119,12 +120,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _getColorDisplayName(MaterialColor color) {
     switch (color.value) {
+      case 0xFF8E24AA:
+        return 'Royal Purple';
       case 0xFF1976D2:
         return 'Electric Blue';
       case 0xFF388E3C:
         return 'Forest Green';
-      case 0xFF8E24AA:
-        return 'Royal Purple';
       case 0xFFFF5722:
         return 'Vibrant Orange';
       case 0xFFD32F2F:
@@ -334,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
 
                   ListTile(
-                    leading: const Icon(Icons.favorite),
+                    leading: const Icon(Icons.tune),
                     title: const Text('User Preferences'),
                     subtitle: const Text('Customize your experience'),
                     trailing: const Icon(Icons.arrow_forward_ios),
@@ -342,6 +343,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () {
                       // TODO: Navigate to language settings
                       logger.d("Navigate to user preferences");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserPreferencesScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],

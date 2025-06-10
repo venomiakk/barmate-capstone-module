@@ -8,8 +8,20 @@ const picsBucketUrl =
     'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/barmatepics';
 
 
-const int colorPaletteVesion = 3; // Zwiększ tę wartość gdy zmieniasz kolory
+const int colorPaletteVesion = 5; // Zwiększ tę wartość gdy zmieniasz kolory
 final availableColors = [
+  const MaterialColor(0xFF8E24AA, {
+  50: Color(0xFFF8E5FF),
+  100: Color(0xFFEABDF4),
+  200: Color(0xFFDB91E8),
+  300: Color(0xFFCD65DC),
+  400: Color(0xFFC044D3),
+  500: Color(0xFF8E24AA),  // Piękny, wyrazisty fiolet
+  600: Color(0xFF7B1FA2),
+  700: Color(0xFF6A1B9A),
+  800: Color(0xFF4A148C),
+  900: Color(0xFF38006B),
+}),
   const MaterialColor(0xFF1976D2, {
     50: Color(0xFFE3F2FD),
     100: Color(0xFFBBDEFB),
@@ -36,18 +48,7 @@ final availableColors = [
     900: Color(0xFF103D14),
   }),
 
-const MaterialColor(0xFF8E24AA, {
-  50: Color(0xFFF8E5FF),
-  100: Color(0xFFEABDF4),
-  200: Color(0xFFDB91E8),
-  300: Color(0xFFCD65DC),
-  400: Color(0xFFC044D3),
-  500: Color(0xFF8E24AA),  // Piękny, wyrazisty fiolet
-  600: Color(0xFF7B1FA2),
-  700: Color(0xFF6A1B9A),
-  800: Color(0xFF4A148C),
-  900: Color(0xFF38006B),
-}),
+
   const MaterialColor(0xFFFF5722, {
     50: Color(0xFFFFF3E0),
     100: Color(0xFFFFE0B2),
