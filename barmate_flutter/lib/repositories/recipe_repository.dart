@@ -22,7 +22,7 @@ class RecipeRepository {
             .toList();
       }
     } catch (e) {
-      print('Error fetching ingredient: $e');
+      logger.e('Error fetching ingredient: $e');
     }
     return [];
   }
@@ -36,7 +36,7 @@ class RecipeRepository {
             .toList();
       }
     } catch (e) {
-      print('Error fetching ingredient: $e');
+      logger.e('Error fetching ingredient: $e');
     }
     return [];
   }
@@ -55,7 +55,7 @@ class RecipeRepository {
             .toList();
       }
     } catch (e) {
-      print('Error fetching recipes by ingredient: $e');
+      logger.e('Error fetching recipes by ingredient: $e');
     }
     return [];
   }
@@ -75,7 +75,7 @@ class RecipeRepository {
             .toList();
       }
     } catch (e) {
-      print('Error fetching recipe steps: $e');
+      logger.e('Error fetching recipe steps: $e');
     }
     return [];
   }
@@ -121,7 +121,7 @@ class RecipeRepository {
             .toList();
       }
     } catch (e) {
-      print('Error fetching recipe steps: $e');
+      logger.e('Error fetching recipe steps: $e');
     }
     return [];
   }
@@ -137,7 +137,7 @@ class RecipeRepository {
         return Recipe.fromJson(response);
       }
     } catch (e) {
-      print('Error fetching recipe by ID: $e');
+     logger.e('Error fetching recipe by ID: $e');
     }
     return null;
   }

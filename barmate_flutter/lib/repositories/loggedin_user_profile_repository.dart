@@ -86,4 +86,37 @@ class LoggedinUserProfileRepository {
       logger.e('Error removing drink from favourites: $e');
     }
   }
+
+  Future<String> fetchUserLogin(var userId) async {
+    try {
+      final response = await client
+          .from('user_data')
+          .select('login')
+          .eq('user_id', userId)
+          .single();
+      if (response != null && response['login'] != null) {
+        return response['login'] as String;
+      }
+    } catch (e) {
+      logger.e('Error fetching user login: $e');
+    }
+    return 'Unknown user';
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCreatedAccountsReport({
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
+    var query = client.from('user_data').select('login, created_at');
+
+    if (fromDate != null) {
+      query = query.gte('created_at', fromDate.toIso8601String());
+    }
+    if (toDate != null) {
+      query = query.lte('created_at', toDate.toIso8601String());
+    }
+
+    final response = await query;
+    return List<Map<String, dynamic>>.from(response);
+  }
 }
