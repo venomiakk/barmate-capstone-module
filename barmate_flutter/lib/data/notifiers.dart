@@ -12,9 +12,23 @@ class AppThemeNotifier extends ValueNotifier<ThemeData> {
   }
 
   static ThemeData _getInitialTheme() {
-    return ThemeData.from(
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent),
+    final primaryColor =
+        constants.availableColors.isNotEmpty
+            ? constants.availableColors[0]
+            : Colors.deepPurpleAccent;
+
+    var baseColorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.light, // Domyślnie jasny motyw
     );
+
+    final customColorScheme = baseColorScheme.copyWith(
+      primary: primaryColor[600]!, // Jasny motyw
+      primaryContainer: primaryColor[200]!,
+      secondary: primaryColor[400]!,
+    );
+
+    return ThemeData.from(colorScheme: customColorScheme, useMaterial3: true);
   }
 
   Future<void> _loadThemeFromPreferences() async {
@@ -29,6 +43,7 @@ class AppThemeNotifier extends ValueNotifier<ThemeData> {
           constants.colorPaletteVesion,
         );
       }
+
       // Załaduj motyw
       final themeModeString = prefs.getString('theme_mode') ?? 'system';
       final isDark =
@@ -44,14 +59,26 @@ class AppThemeNotifier extends ValueNotifier<ThemeData> {
       final primaryColor =
           colorIndex < availableColors.length
               ? availableColors[colorIndex]
-              : Colors.deepPurpleAccent;
+              : constants
+                  .availableColors[0]; // Użyj pierwszego z listy zamiast Colors.deepPurpleAccent
 
-      // Zaktualizuj motyw
+      // UŻYJ TEJ SAMEJ LOGIKI CO W updateTheme()
+      var baseColorScheme = ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        brightness: isDark ? Brightness.dark : Brightness.light,
+      );
+
+      // Zastosuj te same modyfikacje co w updateTheme()
+      final customColorScheme = baseColorScheme.copyWith(
+        primary: primaryColor[isDark ? 400 : 600]!,
+        primaryContainer: primaryColor[isDark ? 800 : 200]!,
+        secondary: primaryColor[isDark ? 200 : 400]!,
+      );
+
+      // Zaktualizuj motyw z niestandardowym ColorScheme
       value = ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryColor,
-          brightness: isDark ? Brightness.dark : Brightness.light,
-        ),
+        colorScheme: customColorScheme,
+        useMaterial3: true,
       );
 
       // Zaktualizuj stary notifier też
@@ -100,9 +127,9 @@ class AppThemeNotifier extends ValueNotifier<ThemeData> {
       // Zmodyfikuj tylko wybrane kolory
       //TODO mozna pozmieniac te kolorki
       final customColorScheme = baseColorScheme.copyWith(
-        primary: primaryColor[isDark ? 400 : 600]!, // Twoja kontrola
-        primaryContainer: primaryColor[isDark ? 800 : 200]!, // Twoja kontrola
-        secondary: primaryColor[isDark ? 200 : 400]!, // Twoja kontrola
+        primary: primaryColor[isDark ? 400 : 600]!,
+        primaryContainer: primaryColor[isDark ? 800 : 200]!,
+        secondary: primaryColor[isDark ? 200 : 400]!,
         // Pozostałe kolory zostają z fromSeed()
       );
 
