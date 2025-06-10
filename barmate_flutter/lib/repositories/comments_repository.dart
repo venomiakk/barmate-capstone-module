@@ -21,4 +21,19 @@ class CommentsRepository {
     }
     return null;
   }
+
+  Future<int?> removeComment(int commentId) async {
+    try {
+      final response = await client.rpc(
+        'remove_comment_by_id',
+        params: {'p_comment_id': commentId},
+      );
+      if (response != null) {
+        return response as int;
+      }
+    } catch (e) {
+      print('Error removing comment: $e');
+    }
+    return null;
+  }
 }

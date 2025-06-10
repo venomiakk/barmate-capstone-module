@@ -54,4 +54,19 @@ class ReportRepository {
     }
     return [];
   }
+
+  Future<int?> removeReport(int reportId) async {
+    try {
+      final response = await client.rpc(
+        'remove_report_by_id',
+        params: {'p_report_id': reportId},
+      );
+      if (response != null) {
+        return response as int;
+      }
+    } catch (e) {
+      logger.e('Error removing report: $e');
+    }
+    return null;
+  }
 }

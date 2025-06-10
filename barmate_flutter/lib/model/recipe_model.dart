@@ -10,8 +10,10 @@ class Recipe {
   final List<TagModel>? tags;
   final String? creatorId; 
   final int? strengthLevel;
+  final bool? ice;
 
   Recipe({
+    this.ice,
     required this.id,
     required this.name,
     required this.description,
@@ -24,6 +26,7 @@ class Recipe {
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
+      ice: json['ice'] ?? false, // <--- Dodane pole
       id: json['id'] as int,
       name: json['name'] as String,
       description: json['description'],

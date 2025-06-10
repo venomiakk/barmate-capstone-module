@@ -17,10 +17,12 @@ import 'package:barmate/widgets/recipeWidgets/ingredient_card_list.dart';
 import 'package:barmate/widgets/recipeWidgets/recipe_comments_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:barmate/repositories/shopping_list_repository.dart';
+import 'package:barmate/repositories/report_repository.dart';
+import 'package:logger/logger.dart';
 
 class RecipeScreen extends StatefulWidget {
   final Recipe? _recipe;
-
+  var logger = Logger(printer: PrettyPrinter());
   RecipeScreen({super.key, Recipe? recipe}) : _recipe = recipe;
 
   @override
@@ -36,6 +38,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   final UserStashRepository _userStashRepository = UserStashRepository();
   final ShoppingListRepository _shoppingListRepository =
       ShoppingListRepository();
+  final ReportRepository _reportRepository = ReportRepository();
   List<RecipeIngredientDisplay> _ingredients = [];
   List<RecipeComment> _comments = [];
   List<RecipeSteps> _steps = [];
@@ -313,6 +316,26 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
   int get _commentsCount => _comments.length;
 
+  // Dodaj funkcję do zgłaszania przepisu
+  Future<void> _reportRecipe() async {
+    if (userId.isEmpty || widget._recipe == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Musisz być zalogowany, aby zgłosić przepis.')),
+      );
+      return;
+    }
+    try {
+      await _reportRepository.addReport(widget._recipe!.id, null, userId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Przepis został zgłoszony!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd podczas zgłaszania przepisu: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -320,187 +343,189 @@ class _RecipeScreenState extends State<RecipeScreen> {
         children: [
           widget._recipe != null
               ? CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 400.0,
-                    pinned: true,
-                    leading: Padding(
-                      padding: const EdgeInsets.all(
-                        8.0,
-                      ), // trochę paddingu, żeby nie był przy krawędzi
-                      child: Material(
-                        color: Colors.black.withOpacity(
-                          0.4,
-                        ), // szare półprzezroczyste tło
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0), // padding wokół ikony
-                            child: Icon(Icons.arrow_back, color: Colors.white),
+                  slivers: [
+                    SliverAppBar(
+                      expandedHeight: 400.0,
+                      pinned: true,
+                      leading: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Material(
+                          color: Colors.black.withOpacity(0.4),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(Icons.arrow_back, color: Colors.white),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(32),
-                              bottomRight: Radius.circular(32),
-                            ),
-                            child:
-                                widget._recipe!.photoUrl != null
-                                    ? Image.network(
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.report, color: Colors.redAccent, size: 32),
+                          tooltip: 'Zgłoś przepis',
+                          onPressed: _reportRecipe,
+                        ),
+                      ],
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(32),
+                                bottomRight: Radius.circular(32),
+                              ),
+                              child: widget._recipe!.photoUrl != null
+                                  ? Image.network(
                                       '${constatns.picsBucketUrl}/${widget._recipe!.photoUrl!}',
                                       fit: BoxFit.cover,
                                     )
-                                    : Image.asset(
+                                  : Image.asset(
                                       'images/default_recipe_image.jpg',
                                       fit: BoxFit.cover,
                                     ),
-                          ),
-                          // Gwiazdki i liczba opinii w prawym dolnym rogu
-                          Positioned(
-                            right: 16,
-                            bottom: 16,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  StarRating(
-                                    rating: _averageRating.round(),
-                                    size: 22,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '(${_commentsCount})',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
-                          ),
-                          Positioned(
-                            left: 16,
-                            bottom: 16,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                  right: 12,
+                            // Gwiazdki i liczba opinii w prawym dolnym rogu
+                            Positioned(
+                              right: 16,
+                              bottom: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    _creatorPhotoUrl != null &&
-                                            _creatorPhotoUrl!.isNotEmpty
-                                        ? CircleAvatar(
-                                          radius: 16,
-                                          backgroundImage: NetworkImage(
-                                            '${constatns.picsBucketUrl}/${_creatorPhotoUrl}',
-                                          ),
-                                        )
-                                        : const CircleAvatar(
-                                          radius: 16,
-                                          child: Icon(
-                                            Icons.person,
-                                            color: Colors.white,
-                                          ),
-                                          backgroundColor: Colors.grey,
-                                        ),
+                                    StarRating(
+                                      rating: _averageRating.round(),
+                                      size: 22,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      _creatorLogin ?? '',
+                                      '(${_commentsCount})',
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        shadows: [
-                                          Shadow(
-                                            blurRadius: 8,
-                                            color: Colors.black54,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      title: null,
-                      centerTitle: true,
-                    ),
-                  ),
-                  // DODAJEMY TU nowy SliverToBoxAdapter z nazwą drinka i przyciskami
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      child: Row(
-                        children: [
-                          // Nazwa drinka
-                          Expanded(
-                            child: Text(
-                              widget._recipe?.name ?? '',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 8,
-                                    color: Colors.black54,
-                                    offset: Offset(0, 2),
+                            Positioned(
+                              left: 16,
+                              bottom: 16,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 12,
                                   ),
-                                ],
+                                  child: Row(
+                                    children: [
+                                      _creatorPhotoUrl != null &&
+                                              _creatorPhotoUrl!.isNotEmpty
+                                          ? CircleAvatar(
+                                            radius: 16,
+                                            backgroundImage: NetworkImage(
+                                              '${constatns.picsBucketUrl}/${_creatorPhotoUrl}',
+                                            ),
+                                          )
+                                          : const CircleAvatar(
+                                            radius: 16,
+                                            child: Icon(
+                                              Icons.person,
+                                              color: Colors.white,
+                                            ),
+                                            backgroundColor: Colors.grey,
+                                          ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _creatorLogin ?? '',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          shadows: [
+                                            Shadow(
+                                              blurRadius: 8,
+                                              color: Colors.black54,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          // Ikony po prawej
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  _isFavourite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color:
+                          ],
+                        ),
+                        title: null,
+                        centerTitle: true,
+                      ),
+                    ),
+                    // DODAJEMY TU nowy SliverToBoxAdapter z nazwą drinka i przyciskami
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          children: [
+                            // Nazwa drinka
+                            Expanded(
+                              child: Text(
+                                widget._recipe?.name ?? '',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 8,
+                                      color: Colors.black54,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Ikony po prawej
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    _isFavourite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color:
                                       Theme.of(
                                         context,
                                       ).colorScheme.primary, // kolor z theme
                                 ),
-                                tooltip:
+                                  tooltip:
                                     _isFavourite
                                         ? 'Remove from favorites'
                                         : 'Add to favorites',
-                                onPressed:
+                                  onPressed:
                                     _checkingStatus
                                         ? null
                                         : () async {
@@ -540,86 +565,101 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                             );
                                           }
                                         },
-                              ),
-                            ],
-                          ),
-                        ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  // ...reszta SliverToBoxAdapter z opisem, składnikami itd...
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 16),
-                          const Text(
-                            'Description:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          buildDescription(widget._recipe!.description),
-                          SizedBox(height: 16),
-                          const Text(
-                            'Ingredients:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text(
-                                'How many drinks?',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                    // ...reszta SliverToBoxAdapter z opisem, składnikami itd...
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 16),
+                            const Text(
+                              'Description:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
                               ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed:
+                            ),
+                            buildDescription(widget._recipe!.description),
+                            SizedBox(height: 16),
+                            const Text(
+                              'Ingredients:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Text(
+                                  'How many drinks?',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 12),
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed:
                                     _drinkCount > 1
                                         ? () => setState(() => _drinkCount--)
                                         : null,
-                              ),
-                              Text(
-                                '$_drinkCount',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => setState(() => _drinkCount++),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          IngredientCardsList(
-                            ingredients: _ingredients,
-                            userStash: _userStash,
-                            loading: _loadingIngredients,
-                            drinkCount: _drinkCount,
-                            userId: userId,
-                            onAddToShoppingList:
+                                Text(
+                                  '$_drinkCount',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => setState(() => _drinkCount++),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            IngredientCardsList(
+                              ingredients: [
+                                ..._ingredients,
+                                if (widget._recipe!.ice == true)
+                                  RecipeIngredientDisplay(
+                                    ingredient: Ingredient(
+                                      id: -999, // special id for ice
+                                      name: 'Ice',
+                                      description: 'Ice cubes',
+                                      photo_url: null,
+                                      unit: null,
+                                      category: null,
+                                    ),
+                                    amount: null, // no amount for ice
+                                  ),
+                              ],
+                              userStash: _userStash,
+                              loading: _loadingIngredients,
+                              drinkCount: _drinkCount,
+                              userId: userId,
+                              onAddToShoppingList:
                                 _shoppingListRepository.addToShoppingList,
-                          ),
-                          buildStepsList(),
-                          BuildCommentsListWidget(
-                            comments: _comments,
-                            loading: _loadingComments,
-                          ),
-                        ],
+                            ),
+                            // --- ICE LOGIC END ---
+                            buildStepsList(),
+                            BuildCommentsListWidget(
+                              comments: _comments,
+                              loading: _loadingComments,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              )
+                  ],
+                )
               : Center(child: Text('Recipe not found')),
         ],
       ),
