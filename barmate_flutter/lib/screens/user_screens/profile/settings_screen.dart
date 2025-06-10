@@ -1,3 +1,4 @@
+import 'package:barmate/screens/user_screens/profile/user_preferences_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
@@ -334,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
 
                   ListTile(
-                    leading: const Icon(Icons.favorite),
+                    leading: const Icon(Icons.tune),
                     title: const Text('User Preferences'),
                     subtitle: const Text('Customize your experience'),
                     trailing: const Icon(Icons.arrow_forward_ios),
@@ -342,6 +343,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () {
                       // TODO: Navigate to language settings
                       logger.d("Navigate to user preferences");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserPreferencesScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],

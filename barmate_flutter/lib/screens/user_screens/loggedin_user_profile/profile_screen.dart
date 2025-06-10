@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
+import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/user_profile_widget.dart';
@@ -8,9 +12,11 @@ import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/drink
 import 'package:barmate/screens/user_screens/profile/settings_screen.dart';
 import 'package:barmate/screens/user_screens/profile/user_history.dart';
 import 'package:barmate/screens/user_screens/profile/widgets/users_recipes_list.dart';
+import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:barmate/Utils/user_shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -25,6 +31,7 @@ class _UserPageState extends State<UserPage> {
       LoggedinUserProfileController.create();
   final PublicUserProfileController _publicController =
       PublicUserProfileController.create();
+  final RecipeRepository _recipeRepository = RecipeRepository();
   String? userTitle;
   String? userBio;
   String? userAvatarUrl;
@@ -41,6 +48,145 @@ class _UserPageState extends State<UserPage> {
     super.initState();
     _loadData();
     _loadPrefsData();
+  }
+
+  Future<void> _getRandomRecommendedRecipe() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => const Center(
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Finding perfect recipe for you...'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+      );
+      final userPreferredTagIds = await _loadUserPreferences();
+
+      // Pobierz wszystkie przepisy
+      final allRecipes = await _recipeRepository.getAllRecipes();
+
+      if (allRecipes.isEmpty) {
+        Navigator.of(context).pop(); // Zamknij loading dialog
+        _showNoRecipesMessage();
+        return;
+      }
+
+      Recipe selectedRecipe;
+
+      if (userPreferredTagIds.isNotEmpty) {
+        // Filtruj przepisy na podstawie preferencji
+        final recommendedRecipes =
+            allRecipes.where((recipe) {
+              if (recipe.tags == null || recipe.tags!.isEmpty) return false;
+
+              // Sprawdź czy przepis ma tagi pasujące do preferencji
+              final recipeTagIds = recipe.tags!.map((tag) => tag.id).toSet();
+              final hasMatchingTags = userPreferredTagIds.any(
+                (prefId) => recipeTagIds.contains(prefId),
+              );
+
+              return hasMatchingTags;
+            }).toList();
+
+        if (recommendedRecipes.isNotEmpty) {
+          // Wybierz losowy przepis z rekomendowanych
+          final random = Random();
+          selectedRecipe =
+              recommendedRecipes[random.nextInt(recommendedRecipes.length)];
+          logger.i("Selected recommended recipe: ${selectedRecipe.name}");
+        } else {
+          // Jeśli brak pasujących przepisów, wybierz losowy z wszystkich
+          final random = Random();
+          selectedRecipe = allRecipes[random.nextInt(allRecipes.length)];
+          logger.i(
+            "No matching recipes found, selected random: ${selectedRecipe.name}",
+          );
+        }
+      } else {
+        // Jeśli brak preferencji, wybierz całkowicie losowy przepis
+        final random = Random();
+        selectedRecipe = allRecipes[random.nextInt(allRecipes.length)];
+        logger.i(
+          "No preferences set, selected random recipe: ${selectedRecipe.name}",
+        );
+      }
+
+      // Zamknij loading dialog
+      Navigator.of(context).pop();
+
+      // Nawiguj do przepisu
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecipeScreen(recipe: selectedRecipe),
+        ),
+      );
+    } catch (e) {
+      // Zamknij loading dialog w przypadku błędu
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+
+      logger.e("Error getting random recipe: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load recipe. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<Set<int>> _loadUserPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedTagIds = prefs.getStringList('drink_tag_ids') ?? [];
+
+      // Konwertuj string IDs na int IDs
+      final intIds =
+          savedTagIds
+              .map((id) => int.tryParse(id))
+              .where((id) => id != null)
+              .cast<int>()
+              .toSet();
+
+      logger.i("Loaded user preferences: $intIds");
+      return intIds;
+    } catch (e) {
+      logger.e("Error loading user preferences: $e");
+      return <int>{};
+    }
+  }
+
+  void _showNoRecipesMessage() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('No Recipes Available'),
+            content: const Text(
+              'There are no recipes available at the moment. Please try again later.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   // Dodaj tę metodę do ładowania danych z preferencji
@@ -242,6 +388,16 @@ class _UserPageState extends State<UserPage> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _getRandomRecommendedRecipe,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        // foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        icon: const Icon(Icons.casino_rounded),
+        label: const Text('Surprise Me!'),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
