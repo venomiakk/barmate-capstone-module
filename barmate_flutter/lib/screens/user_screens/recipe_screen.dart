@@ -608,7 +608,7 @@ Future<void> _removeIngredientsFromStash() async {
                         ),
                       ),
                     ),
-                    // ...reszta SliverToBoxAdapter z opisem, składnikami itd...
+                    // ...description, ingredients, steps, comments...
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -686,10 +686,9 @@ Future<void> _removeIngredientsFromStash() async {
                             ),
                             // --- ICE LOGIC END ---
                             buildStepsList(),
-                            BuildCommentsListWidget(
-                              comments: _comments,
-                              loading: _loadingComments,
-                            ),
+                            buildIMadeADrinkButton(), // <-- pod stepami
+                            const SizedBox(height: 16),
+                            buildCommentsSection(),   // <-- comments + add comment button
                           ],
                         ),
                       ),
@@ -697,92 +696,6 @@ Future<void> _removeIngredientsFromStash() async {
                   ],
                 )
               : Center(child: Text('Recipe not found')),
-        ],
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.check),
-            label: const Text('I made a drink'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).colorScheme.onSecondary,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed:
-                userId.isEmpty
-                    ? null
-                    : () async {
-                      await _removeIngredientsFromStash();
-                      for (int i = 0; i < _drinkCount; i++) {
-                        await _historyRepository.addRecipesToHistory(
-                          userId,
-                          widget._recipe!.id,
-                        );
-                      }
-                      
-                    },
-          ),
-          const SizedBox(height: 12),
-          if (!_loadingComments &&
-              !_comments.any((c) => c.userName == userLogin))
-            FloatingActionButton.extended(
-              onPressed: () {
-                if (userId.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User not logged in!')),
-                  );
-                  return;
-                }
-                showDialog(
-                  context: context,
-                  barrierDismissible: true,
-                  builder:
-                      (context) => Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Container(
-                              width: double.infinity,
-                              constraints: const BoxConstraints(maxWidth: 400),
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).dialogBackgroundColor,
-                                borderRadius: BorderRadius.circular(28),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 24,
-                                    offset: Offset(0, 8),
-                                    color: Theme.of(
-                                      context,
-                                    ).shadowColor.withOpacity(0.2),
-                                  ),
-                                ],
-                              ),
-                              child: AddCommentFormWidget(
-                                recipeId: widget._recipe!.id,
-                                userId: userId,
-                                onSubmit: _recipeRepository.addCommentToRecipe,
-                                closeModal: () => Navigator.of(context).pop(),
-                                userLogin: userLogin,
-                                comments: _comments,
-                                onCommentAdded: _fetchComments,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                );
-              },
-              label: const Text('Add comment'),
-              icon: const Icon(Icons.add_comment),
-            ),
         ],
       ),
     );
@@ -845,6 +758,116 @@ Future<void> _removeIngredientsFromStash() async {
         ],
       );
     }
+  }
+
+  // 1. "Add comment" obok napisu "Comments:"
+  Widget buildCommentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Comments:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(width: 12),
+            if (!_loadingComments && !_comments.any((c) => c.userName == userLogin))
+              ElevatedButton.icon(
+                icon: const Icon(Icons.add_comment),
+                label: const Text('Add comment'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  if (userId.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('User not logged in!')),
+                    );
+                    return;
+                  }
+                  showDialog(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (context) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            width: double.infinity,
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).dialogBackgroundColor,
+                              borderRadius: BorderRadius.circular(28),
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 24,
+                                  offset: Offset(0, 8),
+                                  color: Theme.of(context).shadowColor.withOpacity(0.2),
+                                ),
+                              ],
+                            ),
+                            child: AddCommentFormWidget(
+                              recipeId: widget._recipe!.id,
+                              userId: userId,
+                              onSubmit: _recipeRepository.addCommentToRecipe,
+                              closeModal: () => Navigator.of(context).pop(),
+                              userLogin: userLogin,
+                              comments: _comments,
+                              onCommentAdded: _fetchComments,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+        BuildCommentsListWidget(
+          comments: _comments,
+          loading: _loadingComments,
+        ),
+      ],
+    );
+  }
+
+  // 2. "I made a drink" pod stepami
+  Widget buildIMadeADrinkButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.check),
+          label: const Text('I made a drink'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            foregroundColor: Theme.of(context).colorScheme.onSecondary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: userId.isEmpty
+              ? null
+              : () async {
+                  await _removeIngredientsFromStash();
+                  for (int i = 0; i < _drinkCount; i++) {
+                    await _historyRepository.addRecipesToHistory(
+                      userId,
+                      widget._recipe!.id,
+                    );
+                  }
+                },
+        ),
+      ),
+    );
   }
 }
 

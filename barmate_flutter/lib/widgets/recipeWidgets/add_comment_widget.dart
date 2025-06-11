@@ -79,19 +79,7 @@ class _AddCommentFormWidgetState extends State<AddCommentFormWidget> {
                 value == null || value.isEmpty ? 'Enter a comment' : null,
             style: theme.textTheme.bodyMedium,
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _photoUrlController,
-            decoration: InputDecoration(
-              labelText: 'Photo URL (optional)',
-              border: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-              filled: true,
-              fillColor: theme.cardColor,
-            ),
-            style: theme.textTheme.bodyMedium,
-          ),
+          
           const SizedBox(height: 12),
           Row(
             children: [
