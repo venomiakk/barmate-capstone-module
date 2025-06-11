@@ -546,20 +546,20 @@ class _UserStashScreenState extends State<UserStashScreen> {
     final index = stash.indexWhere((e) => e.ingredientId == entry.ingredientId);
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (isDeleteMode) {
           _toggleSelection(entry.ingredientId);
         } else {
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
-              builder:
-                  (_) => IngredientScreen(
-                    ingredientId: entry.ingredientId,
-                    isFromStash: true,
-                  ),
+              builder: (_) => IngredientScreen(
+                ingredientId: entry.ingredientId,
+                isFromStash: true,
+              ),
             ),
           );
+          _loadStash();
         }
       },
       child: Container(

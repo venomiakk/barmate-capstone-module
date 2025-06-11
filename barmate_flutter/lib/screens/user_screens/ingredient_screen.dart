@@ -1,6 +1,7 @@
 import 'package:barmate/constants.dart' as constants;
 import 'package:barmate/controllers/notifications_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:barmate/model/ingredient_model.dart';
 import 'package:barmate/model/recipe_model.dart';
 import 'package:barmate/model/stash_model.dart';
@@ -141,6 +142,9 @@ class _IngredientScreenState extends State<IngredientScreen> {
                           TextField(
                             controller: controller,
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Wpisz ilość do dodania',
@@ -555,13 +559,16 @@ class _IngredientScreenState extends State<IngredientScreen> {
                     TextField(
                       controller: controller,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'amount',
                       ),
                       onChanged: (value) {
                         setState(() {
-                          counter = int.tryParse(value) ?? counter;
+                          counter = int.tryParse(value) ?? 0;
                         });
                       },
                     ),
@@ -584,7 +591,9 @@ class _IngredientScreenState extends State<IngredientScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        _updateAmount(counter, ingredient);
+                        if (counter >= 0) {
+                          _updateAmount(counter, ingredient);
+                        }
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
