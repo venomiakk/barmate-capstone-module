@@ -222,6 +222,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           for (final json in response) {
             loaded.add(
               RecipeComment(
+                recipeId: widget._recipe!.id,
                 userName: json['login'],
                 rating: json['rating'],
                 comment: json['comment'],
@@ -688,7 +689,12 @@ Future<void> _removeIngredientsFromStash() async {
                             buildStepsList(),
                             buildIMadeADrinkButton(), // <-- pod stepami
                             const SizedBox(height: 16),
-                            buildCommentsSection(),   // <-- comments + add comment button
+                            BuildCommentsListWidget(
+                              comments: _comments,
+                              loading: _loadingComments,
+                              recipeId: widget._recipe!.id, // <-- dodaj to!
+                              onCommentsChanged: _fetchComments, // <-- dodaj to!
+                            ),
                           ],
                         ),
                       ),
@@ -761,82 +767,6 @@ Future<void> _removeIngredientsFromStash() async {
   }
 
   // 1. "Add comment" obok napisu "Comments:"
-  Widget buildCommentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Comments:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(width: 12),
-            if (!_loadingComments && !_comments.any((c) => c.userName == userLogin))
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add_comment),
-                label: const Text('Add comment'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  if (userId.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('User not logged in!')),
-                    );
-                    return;
-                  }
-                  showDialog(
-                    context: context,
-                    barrierDismissible: true,
-                    builder: (context) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Container(
-                            width: double.infinity,
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).dialogBackgroundColor,
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 24,
-                                  offset: Offset(0, 8),
-                                  color: Theme.of(context).shadowColor.withOpacity(0.2),
-                                ),
-                              ],
-                            ),
-                            child: AddCommentFormWidget(
-                              recipeId: widget._recipe!.id,
-                              userId: userId,
-                              onSubmit: _recipeRepository.addCommentToRecipe,
-                              closeModal: () => Navigator.of(context).pop(),
-                              userLogin: userLogin,
-                              comments: _comments,
-                              onCommentAdded: _fetchComments,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-          ],
-        ),
-        BuildCommentsListWidget(
-          comments: _comments,
-          loading: _loadingComments,
-        ),
-      ],
-    );
-  }
 
   // 2. "I made a drink" pod stepami
   Widget buildIMadeADrinkButton() {

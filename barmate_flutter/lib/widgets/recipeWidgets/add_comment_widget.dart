@@ -111,7 +111,6 @@ class _AddCommentFormWidgetState extends State<AddCommentFormWidget> {
                     );
                     return;
                   }
-                  // Sprawdź, czy użytkownik już dodał komentarz
                   final alreadyCommented = widget.comments.any(
                     (c) => c.userName == widget.userLogin,
                   );
@@ -137,7 +136,6 @@ class _AddCommentFormWidgetState extends State<AddCommentFormWidget> {
                   _commentController.clear();
                   _photoUrlController.clear();
                   setState(() => _rating = 5);
-                  if (widget.closeModal != null) widget.closeModal!();
                 }
               },
               child: const Text('Submit'),

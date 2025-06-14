@@ -1,4 +1,5 @@
 class RecipeComment {
+  final int recipeId;
   final int commentId;
   final String? userId;
   final String? userName;
@@ -7,6 +8,7 @@ class RecipeComment {
   final String? photoUrl;
 
   RecipeComment({
+    required this.recipeId,
     required this.commentId,
     this.userId,
     this.userName,
@@ -17,6 +19,7 @@ class RecipeComment {
 
   factory RecipeComment.fromJson(Map<String, dynamic> json) {
     return RecipeComment(
+      recipeId: json['recipe_id'] as int,
       commentId: json['id'] as int,
       userId: json['user_id'] as String?,
       userName: json['user_name'] as String?,

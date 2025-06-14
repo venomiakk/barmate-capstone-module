@@ -1,7 +1,9 @@
 import 'package:barmate/model/recipe_comment_model.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CommentsRepository {
+  var logger = Logger(printer: PrettyPrinter());
   final SupabaseClient client = Supabase.instance.client;
 
   /// Pobiera komentarz po commentId za pomocą funkcji RPC Supabase
@@ -35,5 +37,31 @@ class CommentsRepository {
       print('Error removing comment: $e');
     }
     return null;
+  }
+
+  Future<void> addCommentToRecipe(
+    int p_recipe_id,
+    String p_photo_url,
+    int p_rating,
+    String p_comment,
+    String p_user_id,
+  ) async {
+    try {
+      final response = await client.rpc(
+        'add_comment_to_recipe',
+        params: {
+          'p_recipe_id': p_recipe_id,
+          'p_photo_url': p_photo_url,
+          'p_rating': p_rating,
+          'p_comment': p_comment,
+          'p_user_id': p_user_id,
+        },
+      );
+      if (response != null) {
+        // logger.d('Drink removed from favourites successfully: $response');
+      }
+    } catch (e) {
+      logger.e('Error removing drink from favourites: $e');
+    }
   }
 }
