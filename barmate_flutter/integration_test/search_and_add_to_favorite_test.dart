@@ -19,9 +19,9 @@ void main() {
     );
   });
 
-  group('E2E - Pełna ścieżka użytkownika', () {
+  group('E2E - User route', () {
     testWidgets(
-      'loguje się, wyszukuje przepis, przechodzi do szczegółów i dodaje do ulubionych',
+      'login, search for a recipe, and add it to favorites',
       (WidgetTester tester) async {
         // --- ARRANGE ---
         // Uruchomienie aplikacji. Używamy tu strategii z uruchomieniem MyApp,
