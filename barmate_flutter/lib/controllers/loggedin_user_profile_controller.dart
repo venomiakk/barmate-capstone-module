@@ -11,21 +11,20 @@ import 'package:barmate/constants.dart' as constants;
 
 class LoggedinUserProfileController {
   final logger = Logger(printer: PrettyPrinter());
-  final authService = AuthService();
-  final LoggedinUserProfileRepository userProfileRepository =
-      LoggedinUserProfileRepository();
-  final RecipeRepository recipeRepository =
-      RecipeRepository();
+  
+  // Zależności są teraz 'final' i przyjmowane przez konstruktor
+  final AuthService authService;
+  final LoggedinUserProfileRepository userProfileRepository;
+  final RecipeRepository recipeRepository;
 
   String? userTitle;
-  // Fabryka do tworzenia instancji
-  static LoggedinUserProfileController Function() factory =
-      () => LoggedinUserProfileController();
-
-  // Metoda fabryczna
-  static LoggedinUserProfileController create() {
-    return factory();
-  }
+  
+  // Konstruktor, który przyjmuje zależności
+  LoggedinUserProfileController({
+    required this.authService,
+    required this.userProfileRepository,
+    required this.recipeRepository,
+  });
 
   Future<String> getUserBio() async {
     try {

@@ -1,5 +1,7 @@
+import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +23,11 @@ class FavouriteDrinksListWidget extends StatefulWidget {
 class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
   var logger = Logger(printer: PrettyPrinter());
   final LoggedinUserProfileController _controller =
-      LoggedinUserProfileController.create();
+      LoggedinUserProfileController(
+        authService: AuthService(),
+        userProfileRepository: LoggedinUserProfileRepository(),
+        recipeRepository: RecipeRepository(),
+      );
   final List<Drink> favoriteDrinks = [];
   bool isLoading = true;
 
@@ -109,7 +115,11 @@ class FavouriteDrinksListWidgetState extends State<FavouriteDrinksListWidget> {
   }
 
   void viewDrinkDetails(Drink drink) async {
-    final recipe = await LoggedinUserProfileController().getRecipeById(
+    final recipe = await LoggedinUserProfileController(
+      authService: AuthService(),
+      userProfileRepository: LoggedinUserProfileRepository(),
+      recipeRepository: RecipeRepository(),
+    ).getRecipeById(
       drink.recipeId,
     );
     // logger.d('Navigating to recipe details for: ${recipe.photoUrl}');

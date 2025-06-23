@@ -1,3 +1,5 @@
+import 'package:barmate/auth/auth_service.dart';
+import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/screens/user_screens/add_recipe.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +29,11 @@ class UsersRecipesListState extends State<UsersRecipesList> {
   final PublicUserProfileController _publicController =
       PublicUserProfileController.create();
   final LoggedinUserProfileController _loggedInController =
-      LoggedinUserProfileController.create();
+      LoggedinUserProfileController(
+        authService: AuthService(),
+        userProfileRepository: LoggedinUserProfileRepository(),
+        recipeRepository: RecipeRepository(),
+      );
 
   final RecipeRepository _recipeRepository = RecipeRepository();
 

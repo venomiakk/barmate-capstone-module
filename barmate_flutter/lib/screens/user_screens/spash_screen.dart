@@ -113,6 +113,7 @@ class SpashScreen extends StatelessWidget {
                             ),
                             const Spacer(),
                             GestureDetector(
+                              key: const Key('navigate_to_sign_in_button'),
                               onTap: () => {
                                 Navigator.push(
                                   context,

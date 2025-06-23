@@ -40,6 +40,7 @@ class UserRecipeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        key: const Key('user_recipe_card_container'),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8),
@@ -109,7 +110,7 @@ class UserRecipeCard extends StatelessWidget {
             ),
 
             // Remove button (X) - tylko dla zalogowanego użytkownika
-            if (showRemoveButton && onRemove != null)
+            if (showRemoveButton && onRemove != null && !isDeleteMode)
               Positioned(
                 top: 2,
                 right: 2,

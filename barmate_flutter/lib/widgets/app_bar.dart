@@ -60,7 +60,9 @@ class _AppBarWidgetState extends State<AppBarWidget> {
           toolbarHeight: 100,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center, // Wyśrodkuj w pionie
             children: [
+              // Usunęliśmy Expanded, a Row jest teraz zwykłym dzieckiem
               Row(
                 children:
                     hour < 12
@@ -69,7 +71,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
                           const SizedBox(width: 10),
                           const Text(
                             'Good Morning',
-                            style: TextStyle(fontSize: fontSize2),
+                            style: TextStyle(fontSize: 18),
                           ),
                         ]
                         : hour < 18
@@ -78,7 +80,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
                           const SizedBox(width: 10),
                           const Text(
                             'Good Afternoon',
-                            style: TextStyle(fontSize: fontSize2),
+                            style: TextStyle(fontSize: 18),
                           ),
                         ]
                         : [
@@ -86,71 +88,73 @@ class _AppBarWidgetState extends State<AppBarWidget> {
                           const SizedBox(width: 10),
                           const Text(
                             'Good Evening',
-                            style: TextStyle(fontSize: fontSize2),
+                            style: TextStyle(fontSize: 18),
                           ),
                         ],
               ),
+              const SizedBox(height: 4), // Mały odstęp
               _isLoading
-                  ? const Text(
-                    "Loading...",
-                    style: TextStyle(fontSize: fontSize2),
-                  )
+                  ? const Text("Loading...", style: TextStyle(fontSize: 22))
                   : Text(
                     username,
                     style: const TextStyle(
-                      fontSize: fontSize1,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
             ],
           ),
           actions: [
-  Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 25),
-    child: Consumer<NotificationService>(
-      builder: (context, notifier, child) {
-        final hasUnread = notifier.hasUnread;
-
-        return Stack(
-          children: [
-            IconButton(
-              icon: Icon(
-                Icons.notifications,
-                color: Theme.of(context).colorScheme.primary,
-                size: 40,
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 25,
               ),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen(),
-                  ),
-                );
+              child: Consumer<NotificationService>(
+                builder: (context, notifier, child) {
+                  final hasUnread = notifier.hasUnread;
 
-                Provider.of<NotificationService>(context, listen: false).markAllAsRead();
-              },
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.notifications,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 40,
+                        ),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsScreen(),
+                            ),
+                          );
 
+                          Provider.of<NotificationService>(
+                            context,
+                            listen: false,
+                          ).markAllAsRead();
+                        },
+                      ),
+                      if (hasUnread)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
-            if (hasUnread)
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
           ],
-        );
-      },
-    ),
-  ),
-],
-
         );
       },
     );

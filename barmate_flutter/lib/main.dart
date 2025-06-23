@@ -6,20 +6,21 @@ import 'package:barmate/data/notifiers.dart';
 import 'package:provider/provider.dart';
 import 'package:barmate/controllers/notifications_controller.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZ3BydGppbHpudnRlenZpaHd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjkxMTAwOCwiZXhwIjoyMDU4NDg3MDA4fQ.uJAtHRsLeDJCV2sRrSriH7MqJSoNPYz5dU3ZRq3O9dY',
-    url: 'https://dqgprtjilznvtezvihww.supabase.co',
-  );
+  // if (Supabase.instance == null) {
+    await Supabase.initialize(
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZ3BydGppbHpudnRlenZpaHd3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjkxMTAwOCwiZXhwIjoyMDU4NDg3MDA4fQ.uJAtHRsLeDJCV2sRrSriH7MqJSoNPYz5dU3ZRq3O9dY',
+      url: 'https://dqgprtjilznvtezvihww.supabase.co',
+    );
+  // }
 
   // Skoro getInstance() zwraca Future<UserPreferences>, nie ma potrzeby wywoływania init() oddzielnie
   await UserPreferences.getInstance(); // To już inicjalizuje preferencje
 
-    runApp(
+  runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NotificationService()),
@@ -28,7 +29,6 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
-
 }
 
 class MyApp extends StatelessWidget {
