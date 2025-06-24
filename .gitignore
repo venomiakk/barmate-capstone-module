@@ -28,3 +28,10 @@ replay_pid*
 /barmate_flutter/windows
 /barmate_flutter/macos
 /barmate_flutter/linux
+/supabase/supabase/.temp
+/supabase_testing/supabase/.temp
+/supabase_testing/supabase/.branches
+/supabase_testing/supabase/migrations
+/supabase_testing/security_tests/node_modules
+supabase_testing/security_tests/.env
+supabase_testing/supabase/.env
