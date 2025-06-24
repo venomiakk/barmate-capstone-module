@@ -35,3 +35,5 @@ replay_pid*
 /supabase_testing/security_tests/node_modules
 supabase_testing/security_tests/.env
 supabase_testing/supabase/.env
+/supabase_testing/load_tests/node_modules
+supabase_testing/load_tests/config.json

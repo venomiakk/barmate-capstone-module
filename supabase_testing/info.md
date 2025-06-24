@@ -77,3 +77,69 @@ Snapshots:   0 total
 Time:        1.507 s, estimated 2 s
 Ran all test suites.
 ```
+
+# Load tests (API)
+
+```bash
+k6 run load-test.js
+```
+
+## Results
+
+```bash
+PS D:\GitRepos\barmate-capstone-module\supabase_testing\load_tests> k6 run load-test.js
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: load-test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 1000 max VUs, 1m0s max duration (incl. graceful stop):
+              * default: 1000 looping VUs for 30s (gracefulStop: 30s)
+
+
+
+  █ THRESHOLDS
+
+    http_req_duration
+    ✓ 'p(95)<800' p(95)=121.16ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......................: 26585   853.789171/s
+    checks_succeeded...................: 100.00% 26585 out of 26585
+    checks_failed......................: 0.00%   0 out of 26585
+
+    ✓ status was 200
+
+    HTTP
+    http_req_duration.......................................................: avg=71.67ms min=39.9ms med=62.68ms max=625.19ms p(90)=98.81ms p(95)=121.16ms
+      { expected_response:true }............................................: avg=71.67ms min=39.9ms med=62.68ms max=625.19ms p(90)=98.81ms p(95)=121.16ms
+    http_req_failed.........................................................: 0.00%  0 out of 26585
+    http_reqs...............................................................: 26585  853.789171/s
+
+    EXECUTION
+    iteration_duration......................................................: avg=1.14s   min=1.03s  med=1.06s   max=5.32s    p(90)=1.1s    p(95)=1.18s
+    iterations..............................................................: 26585  853.789171/s
+    vus.....................................................................: 127    min=127        max=1000
+    vus_max.................................................................: 1000   min=1000       max=1000
+
+    NETWORK
+    data_received...........................................................: 85 MB  2.7 MB/s
+    data_sent...............................................................: 2.4 MB 76 kB/s
+
+
+
+
+running (0m31.1s), 0000/1000 VUs, 26585 complete and 0 interrupted iterations
+default ✓ [======================================] 1000 VUs  30s
+```
