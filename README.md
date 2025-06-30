@@ -1,6 +1,6 @@
 # barmate-capstone-module
 
-### Grupa
+## Grupa
 
 - [Adrian Michałek 247736](https://github.com/venomiakk)
 - [Natalia Nykiel 247746](https://github.com/natalianykiel)
@@ -8,8 +8,33 @@
 - [Patryk Sałyga 247780](https://github.com/patryksalyga)
 - [Mateusz Michalec 247735](https://github.com/MatMichalec)
 
+## Instrukcja uruchomienia
 
-### wymagania funkcjonalne
+Aby uruchomić projekt należy zainstalować i skonfigurować środowisko zgodnie z instrukcją  
+https://docs.flutter.dev/get-started/install
+
+W celu uruchomienia aplikacji na emulatorze (emulator musi być włączony) należy wykonać następujące polecenia w folderze projektu
+
+```bash
+# Instalacja potrzebnych bibliotek
+...\barmate_flutter>flutter pub get
+# Uruchomienie aplikacji
+...\barmate_flutter>flutter run
+```
+
+Aby zbudować aplikację na system Android należy wykonać następujące polecenia
+
+```bash
+...\barmate_flutter>flutter build apk
+```
+
+Następnie plik .apk należy przenieść na telefon i uruchomić. Wtedy aplikacja powinna się zainstalować
+
+```bash
+...\barmate_flutterbuild\app\outputs\flutter-apk\app-release.apk
+```
+
+## Wymagania funkcjonalne 30.06.2025
 
 **gość**
 
