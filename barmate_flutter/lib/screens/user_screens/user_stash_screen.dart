@@ -253,7 +253,6 @@ class _UserStashScreenState extends State<UserStashScreen> {
             onPressed: () {
               setState(() {
                 if (isSearchPanelVisible) {
-                  // Resetujemy filtrowanie przy zamknięciu
                   searchQuery = '';
                   selectedCategory = null;
                 }
@@ -411,7 +410,7 @@ class _UserStashScreenState extends State<UserStashScreen> {
                     builder:
                         (context) => GeneratedRecipeScreen(
                           recipe: generatedRecipe,
-                        ), // <-- przekaż GeneratedRecipeModel
+                        ),
                   ),
                 );
               }

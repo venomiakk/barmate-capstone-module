@@ -25,7 +25,7 @@ class GeneratedRecipeScreen extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Material(
-                color: Colors.black.withOpacity(0.4), // gray background like in RecipeScreen
+                color: Colors.black.withOpacity(0.4),
                 shape: const CircleBorder(),
                 child: InkWell(
                   customBorder: const CircleBorder(),

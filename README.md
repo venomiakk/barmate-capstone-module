@@ -1,10 +1,13 @@
 # barmate-capstone-module
 
-Aby uruchomić testy trzeba najpierw wygenerować pliki mock
+### Grupa
 
-```shell
-flutter pub run build_runner build
-```
+- [Adrian Michałek 247736](https://github.com/venomiakk)
+- [Natalia Nykiel 247746](https://github.com/natalianykiel)
+- [Maksymilian Paluśkiewicz 247754](https://github.com/FdotP)
+- [Patryk Sałyga 247780](https://github.com/patryksalyga)
+- [Mateusz Michalec 247735](https://github.com/MatMichalec)
+
 
 ### wymagania funkcjonalne
 
@@ -16,13 +19,13 @@ flutter pub run build_runner build
 **administrator**
 
 - [x] Dodawanie artykułów
-- [ ] Generowanie raportów
+- [x] Generowanie raportów
 - [x] Tworzenie kolekcji przepisów
 
 **moderator**
 
-- [ ] Przeglądanie zgłoszeń
-- [ ] Usuwanie treści
+- [x] Przeglądanie zgłoszeń
+- [x] Usuwanie treści
 
 **koneser**
 
@@ -33,13 +36,13 @@ flutter pub run build_runner build
 - [x] Wyszukiwanie artykułów
 - [x] Wyszukiwanie drinków
 - [x] Filtrowanie wyników
-- [ ] Tablica powiadomień
+- [x] Tablica powiadomień
 - [x] Generowanie przepisu na podstawie zapasów
 - [x] Skalowanie przepisów
 - [x] Dodawanie przepisów
 - [x] Dodawanie składników do listy zakupów
 - [x] Usuwanie składników z listy zakupów
-- [ ] Powiadomienia o niskim stanie zapasów
+- [x] Powiadomienia o niskim stanie zapasów
 - [x] Ulubione drinki
 - [x] Komentowanie przepisów
 - [x] Ocenianie przepisów
@@ -48,8 +51,8 @@ flutter pub run build_runner build
 - [ ] Granie w minigry
 - [x] Wyszukiwanie innych użytkowników
 - [x] Dostosowywanie preferencji
-- [x] Personalizacja interfejsu **(50/50)**
+- [x] Personalizacja interfejsu
 - [x] Personalizacja profilu
 - [x] Wyświetlanie instrukcji przygotowania drinków
-- [ ] Wyświetlanie wskazówek dotyczących dekoracji
-- [ ] Zgłaszanie nieodpowiednich treści
+- [x] Wyświetlanie wskazówek dotyczących dekoracji
+- [x] Zgłaszanie nieodpowiednich treści

@@ -8,7 +8,7 @@ const picsBucketUrl =
     'https://dqgprtjilznvtezvihww.supabase.co/storage/v1/object/public/barmatepics';
 
 
-const int colorPaletteVesion = 5; // Zwiększ tę wartość gdy zmieniasz kolory
+const int colorPaletteVesion = 5;
 final availableColors = [
   const MaterialColor(0xFF8E24AA, {
   50: Color(0xFFF8E5FF),
@@ -16,7 +16,7 @@ final availableColors = [
   200: Color(0xFFDB91E8),
   300: Color(0xFFCD65DC),
   400: Color(0xFFC044D3),
-  500: Color(0xFF8E24AA),  // Piękny, wyrazisty fiolet
+  500: Color(0xFF8E24AA), 
   600: Color(0xFF7B1FA2),
   700: Color(0xFF6A1B9A),
   800: Color(0xFF4A148C),
@@ -28,7 +28,7 @@ final availableColors = [
     200: Color(0xFF90CAF9),
     300: Color(0xFF64B5F6),
     400: Color(0xFF42A5F5),
-    500: Color(0xFF1976D2), // Wyrazisty niebieski
+    500: Color(0xFF1976D2),
     600: Color(0xFF1565C0),
     700: Color(0xFF0D47A1),
     800: Color(0xFF0A3E8F),
@@ -41,7 +41,7 @@ final availableColors = [
     200: Color(0xFFA5D6A7),
     300: Color(0xFF81C784),
     400: Color(0xFF66BB6A),
-    500: Color(0xFF388E3C), // Wyrazisty zielony
+    500: Color(0xFF388E3C),
     600: Color(0xFF2E7D32),
     700: Color(0xFF1B5E20),
     800: Color(0xFF164D1A),
@@ -55,7 +55,7 @@ final availableColors = [
     200: Color(0xFFFFCC80),
     300: Color(0xFFFFB74D),
     400: Color(0xFFFFA726),
-    500: Color(0xFFFF5722), // Wyrazisty pomarańczowy
+    500: Color(0xFFFF5722),
     600: Color(0xFFE64A19),
     700: Color(0xFFD84315),
     800: Color(0xFFBF360C),
@@ -68,7 +68,7 @@ final availableColors = [
     200: Color(0xFFEF9A9A),
     300: Color(0xFFE57373),
     400: Color(0xFFEF5350),
-    500: Color(0xFFD32F2F), // Wyrazisty czerwony
+    500: Color(0xFFD32F2F),
     600: Color(0xFFC62828),
     700: Color(0xFFB71C1C),
     800: Color(0xFF9C1515),
@@ -81,7 +81,7 @@ final availableColors = [
     200: Color(0xFF80CBC4),
     300: Color(0xFF4DB6AC),
     400: Color(0xFF26A69A),
-    500: Color(0xFF00796B), // Wyrazisty teal
+    500: Color(0xFF00796B),
     600: Color(0xFF00695C),
     700: Color(0xFF004D40),
     800: Color(0xFF003D33),
@@ -94,7 +94,7 @@ final availableColors = [
     200: Color(0xFF9FA8DA),
     300: Color(0xFF7986CB),
     400: Color(0xFF5C6BC0),
-    500: Color(0xFF303F9F), // Wyrazisty indigo
+    500: Color(0xFF303F9F),
     600: Color(0xFF283593),
     700: Color(0xFF1A237E),
     800: Color(0xFF151B6B),
@@ -107,7 +107,7 @@ final availableColors = [
     200: Color(0xFFF48FB1),
     300: Color(0xFFF06292),
     400: Color(0xFFEC407A),
-    500: Color(0xFFE91E63), // Wyrazisty różowy
+    500: Color(0xFFE91E63),
     600: Color(0xFFD81B60),
     700: Color(0xFFC2185B),
     800: Color(0xFFAD1457),
