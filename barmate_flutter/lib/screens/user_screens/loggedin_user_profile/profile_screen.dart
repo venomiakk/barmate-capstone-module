@@ -1,9 +1,11 @@
 import 'dart:math';
 
+import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
 import 'package:barmate/model/favourite_drink_model.dart';
 import 'package:barmate/model/recipe_model.dart';
+import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
 import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/edit_profile_screen.dart';
 import 'package:barmate/screens/user_screens/loggedin_user_profile/widgets/favourite_drinks_list_widget.dart';
@@ -28,7 +30,11 @@ class UserPage extends StatefulWidget {
 class _UserPageState extends State<UserPage> {
   var logger = Logger(printer: PrettyPrinter());
   final LoggedinUserProfileController _controller =
-      LoggedinUserProfileController.create();
+      LoggedinUserProfileController(
+        authService: AuthService(),
+        recipeRepository: RecipeRepository(),
+        userProfileRepository: LoggedinUserProfileRepository(),
+      );
   final PublicUserProfileController _publicController =
       PublicUserProfileController.create();
   final RecipeRepository _recipeRepository = RecipeRepository();

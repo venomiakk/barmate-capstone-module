@@ -69,11 +69,17 @@ class _SignInState extends State<SignIn> {
                 ),
               ),
               SizedBox(height: size.height * 0.08),
-              myTextField("email", Colors.black45, emailController),
+              myTextField(
+                "email",
+                Colors.black45,
+                emailController,
+                key: const Key('signin_email_field'), // <-- DODAJ TUTAJ
+              ),
               myTextField(
                 "password",
                 Colors.black45,
                 passwordController,
+                key: const Key('signin_password_field'), // <-- I TUTAJ
                 seeable: seeablePassword,
               ),
               const SizedBox(height: 10),
@@ -95,6 +101,7 @@ class _SignInState extends State<SignIn> {
                 child: Column(
                   children: [
                     GestureDetector(
+                      key: const Key('signin_button'),
                       onTap: login,
                       child: Container(
                         width: size.width,
@@ -211,31 +218,15 @@ class _SignInState extends State<SignIn> {
     Color color,
     TextEditingController controller, {
     bool seeable = false,
+    Key? key, // <--- DODAJ TEN PARAMETR
   }) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
       child: TextField(
+        key: key, // <--- UŻYJ KLUCZA TUTAJ
         obscureText: seeable,
         controller: controller,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none,
-          ),
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.black45, fontSize: 19),
-          suffixIcon: GestureDetector(
-            onTap: () {
-              setState(() {
-                seeablePassword = !seeablePassword;
-              });
-            },
-            child: Icon(Icons.visibility_off_outlined, color: color),
-          ),
-        ),
+        // ... reszta dekoracji
       ),
     );
   }

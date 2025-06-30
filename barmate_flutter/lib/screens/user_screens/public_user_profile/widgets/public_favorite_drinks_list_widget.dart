@@ -1,5 +1,8 @@
+import 'package:barmate/auth/auth_service.dart';
 import 'package:barmate/controllers/loggedin_user_profile_controller.dart';
 import 'package:barmate/controllers/public_profile_controller.dart';
+import 'package:barmate/repositories/loggedin_user_profile_repository.dart';
+import 'package:barmate/repositories/recipe_repository.dart';
 import 'package:barmate/screens/user_screens/public_user_profile/widgets/public_drink_card_widget.dart';
 import 'package:barmate/screens/user_screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +73,11 @@ class _PublicFavouriteDrinksWidgetState
   }
 
   Future<void> viewDrinkDetails(PublicDrink drink) async {
-    final recipe = await LoggedinUserProfileController().getRecipeById(
+    final recipe = await LoggedinUserProfileController(
+      authService: AuthService(),
+      userProfileRepository: LoggedinUserProfileRepository(),
+      recipeRepository: RecipeRepository(),
+    ).getRecipeById(
       drink.recipeId,
     );
     // logger.d('Navigating to recipe details for: ${recipe.photoUrl}');

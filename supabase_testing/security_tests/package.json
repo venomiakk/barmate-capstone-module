@@ -1,0 +1,20 @@
+{
+  "name": "security_tests",
+  "version": "1.0.0",
+  "description": "Scripts for testing supabase security",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "axios": "^1.10.0",
+    "jest": "^30.0.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.1",
+    "dotenv": "^16.5.0"
+  }
+}

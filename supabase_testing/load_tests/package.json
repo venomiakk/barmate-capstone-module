@@ -1,0 +1,18 @@
+{
+  "name": "api_load_tests",
+  "version": "1.0.0",
+  "description": "Load tests for supabase api",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/k6": "^1.0.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.1"
+  }
+}

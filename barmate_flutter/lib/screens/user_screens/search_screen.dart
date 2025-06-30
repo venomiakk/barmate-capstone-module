@@ -321,6 +321,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           Expanded(
             child: SearchBar(
+              key: const Key('search_bar'),
               hintText: 'Search',
               onChanged: (query) {
                 if (!mounted) return;
@@ -547,6 +548,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildRecipeCard(Recipe recipe) {
     return InkWell(
+      key: Key('recipe_card_${recipe.id}'),
       onTap: () {
         if (!_isFromAddCollection) {
           Navigator.push(

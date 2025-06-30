@@ -1,0 +1,4 @@
+services:
+  db:
+    volumes:
+      - ./extensions:/docker-entrypoint-initdb.d
